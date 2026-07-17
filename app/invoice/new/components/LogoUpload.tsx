@@ -2,27 +2,45 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useSession } from '@/lib/auth';
+import { useSession } from 'next-auth/react';
 
 interface LogoUploadProps {
   onLogoUpdate?: (url: string | null) => void;
+}
+
+interface SessionUser {
+  logoUrl?: string | null;
+  name?: string | null;
+  email?: string | null;
 }
 
 export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const session = useSession();
+  const { data: session, update: updateSession } = useSession();
 
   useEffect(() => {
-    if (session?.user?.logoUrl) {
-      setLogoUrl(session.user.logoUrl);
+    const user = session?.user as SessionUser;
+    if (user?.logoUrl) {
+      setLogoUrl(user.logoUrl);
     }
   }, [session]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size must be less than 2MB');
+      return;
+    }
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      setError('Only PNG, JPG, and SVG files are allowed');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -44,6 +62,14 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
 
       setLogoUrl(data.logoUrl);
       onLogoUpdate?.(data.logoUrl);
+      
+      await updateSession({
+        user: {
+          ...session?.user,
+          logoUrl: data.logoUrl,
+        },
+      });
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -52,18 +78,31 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
   };
 
   const handleRemove = async () => {
+    if (!logoUrl) return;
+
     setLoading(true);
+    setError(null);
+
     try {
       const res = await fetch('/api/upload/logo', {
         method: 'DELETE',
       });
 
       if (!res.ok) {
-        throw new Error('Failed to remove logo');
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to remove logo');
       }
 
       setLogoUrl(null);
       onLogoUpdate?.(null);
+      
+      await updateSession({
+        user: {
+          ...session?.user,
+          logoUrl: null,
+        },
+      });
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Remove failed');
     } finally {
@@ -75,22 +114,22 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
     <div className="space-y-4">
       <div className="flex items-center space-x-4">
         {logoUrl ? (
-          <div className="relative h-20 w-20">
+          <div className="relative h-20 w-20 flex-shrink-0">
             <Image
               src={logoUrl}
               alt="Company Logo"
               fill
-              className="object-contain rounded border"
+              className="object-contain rounded border border-gray-200"
             />
           </div>
         ) : (
-          <div className="h-20 w-20 border-2 border-dashed rounded flex items-center justify-center text-gray-400">
-            Logo
+          <div className="h-20 w-20 flex-shrink-0 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 bg-gray-50">
+            <span className="text-xs">Logo</span>
           </div>
         )}
         
         <div className="flex flex-col space-y-2">
-          <label className="cursor-pointer">
+          <label className="cursor-pointer inline-block">
             <input
               type="file"
               accept="image/png,image/jpeg,image/svg+xml"
@@ -98,7 +137,11 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
               className="hidden"
               disabled={loading}
             />
-            <span className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm disabled:opacity-50">
+            <span className={`px-4 py-2 text-sm rounded transition-colors ${
+              loading 
+                ? 'bg-gray-400 text-white cursor-not-allowed' 
+                : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
+            }`}>
               {loading ? 'Uploading...' : logoUrl ? 'Change Logo' : 'Upload Logo'}
             </span>
           </label>
@@ -107,7 +150,11 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
             <button
               onClick={handleRemove}
               disabled={loading}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm disabled:opacity-50"
+              className={`px-4 py-2 text-sm rounded transition-colors ${
+                loading 
+                  ? 'bg-gray-400 text-white cursor-not-allowed' 
+                  : 'bg-red-500 text-white hover:bg-red-600'
+              }`}
             >
               Remove Logo
             </button>
@@ -116,7 +163,9 @@ export default function LogoUpload({ onLogoUpdate }: LogoUploadProps) {
       </div>
 
       {error && (
-        <div className="text-red-500 text-sm">{error}</div>
+        <div className="text-red-500 text-sm bg-red-50 p-2 rounded border border-red-200">
+          ⚠️ {error}
+        </div>
       )}
 
       <div className="text-sm text-gray-500">
