@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import LangProvider, { type Lang } from "./LangProvider";
@@ -17,3 +17,4 @@ export default function ClientRoot({ children }: { children: React.ReactNode }) 
   const initialLang = readCookieLang();
   return <LangProvider initialLang={initialLang}>{children}</LangProvider>;
 }
+

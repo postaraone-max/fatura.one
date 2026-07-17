@@ -1,4 +1,4 @@
-ï»¿export type PricingPlanId = "starter" | "campaign" | "pro";
+export type PricingPlanId = "starter" | "campaign" | "pro";
 
 export type PricingPlan = {
   id: PricingPlanId;
@@ -22,68 +22,68 @@ export type PricingContent = {
 
 export const pricingSv: PricingContent = {
   sectionSubtitle:
-    "BÃ¶rja enkelt och skala upp nÃ¤r din kommunikation, dina fÃ¶ljare och dina kampanjer vÃ¤xer.",
+    "Börja enkelt och skala upp när din kommunikation, dina följare och dina kampanjer växer.",
   plans: [
     {
       id: "starter",
-      badge: "FÃ¶r mindre team",
+      badge: "För mindre team",
       name: "Starter",
       tagline:
-        "FÃ¶r smÃ¥ fÃ¶retag och lokala kampanjer som vill samla allt postande pÃ¥ ett stÃ¤lle.",
+        "För små företag och lokala kampanjer som vill samla allt postande på ett ställe.",
       bullets: [
-        "SchemalÃ¤gg inlÃ¤gg till flera kanaler med ett klick",
-        "AI-fÃ¶rslag pÃ¥ texter (beta) + enkel historik",
+        "Schemalägg inlägg till flera kanaler med ett klick",
+        "AI-förslag på texter (beta) + enkel historik",
       ],
-      cta: "VÃ¤lj Starter",
+      cta: "Välj Starter",
     },
     {
       id: "campaign",
       name: "Campaign",
       tagline:
-        "FÃ¶r kampanjer och vÃ¤xande varumÃ¤rken som kommunicerar varje vecka.",
+        "För kampanjer och växande varumärken som kommunicerar varje vecka.",
       bullets: [
-        "HÃ¶gre antal schemalagda inlÃ¤gg per mÃ¥nad",
-        "Spara och Ã¥teranvÃ¤nd dina viktigaste kampanjbudskap",
+        "Högre antal schemalagda inlägg per månad",
+        "Spara och återanvänd dina viktigaste kampanjbudskap",
       ],
-      cta: "VÃ¤lj Campaign",
+      cta: "Välj Campaign",
     },
     {
       id: "pro",
-      badge: "FÃ¶r stÃ¶rre organisationer",
+      badge: "För större organisationer",
       name: "Pro",
       tagline:
-        "FÃ¶r byrÃ¥er och organisationer som hanterar flera varumÃ¤rken samtidigt.",
+        "För byråer och organisationer som hanterar flera varumärken samtidigt.",
       bullets: [
-        "Byggt fÃ¶r flera varumÃ¤rken och projekt i samma konto",
-        "Prioritet fÃ¶r input pÃ¥ nya analysfunktioner och features",
+        "Byggt för flera varumärken och projekt i samma konto",
+        "Prioritet för input på nya analysfunktioner och features",
       ],
       cta: "Kontakta oss",
     },
   ],
   faq: [
     {
-      question: "Kan jag avsluta nÃ¤r som helst?",
+      question: "Kan jag avsluta när som helst?",
       answer:
-        "Ja. Du kan avsluta nÃ¤r du vill och anvÃ¤nder planen tills nuvarande betalperiod Ã¤r slut.",
+        "Ja. Du kan avsluta när du vill och använder planen tills nuvarande betalperiod är slut.",
     },
     {
-      question: "BehÃ¶ver jag betalkort fÃ¶r att komma igÃ¥ng?",
-      answer: "Ja. Betalningar hanteras sÃ¤kert via Stripe.",
+      question: "Behöver jag betalkort för att komma igång?",
+      answer: "Ja. Betalningar hanteras säkert via Stripe.",
     },
     {
       question: "Finns det bindningstid?",
       answer:
-        "Inte just nu. Du kan bÃ¶rja pÃ¥ den lÃ¤gsta planen och uppgradera bara om Postara sparar tid Ã¥t dig.",
+        "Inte just nu. Du kan börja på den lägsta planen och uppgradera bara om Postara sparar tid åt dig.",
     },
     {
       question: "Kan jag byta plan senare?",
       answer:
-        "Ja. Du kan upp- eller nedgradera mellan planer. Ã„ndringen gÃ¤ller frÃ¥n nÃ¤sta faktureringsperiod.",
+        "Ja. Du kan upp- eller nedgradera mellan planer. Ändringen gäller från nästa faktureringsperiod.",
     },
     {
-      question: "Vem Ã¤ger innehÃ¥llet vi publicerar?",
+      question: "Vem äger innehållet vi publicerar?",
       answer:
-        "Du Ã¤ger allt innehÃ¥ll. Postara hjÃ¤lper bara till att schemalÃ¤gga och publicera det.",
+        "Du äger allt innehåll. Postara hjälper bara till att schemalägga och publicera det.",
     },
   ],
 };

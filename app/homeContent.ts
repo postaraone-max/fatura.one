@@ -1,4 +1,4 @@
-ï»¿export type HomeContent = {
+export type HomeContent = {
   heroTitle: string;
   heroSubtitle: string;
   ctaStart: string;
@@ -24,7 +24,7 @@ export const homeEn: HomeContent = {
 
   oneClickTitle: "One-Click Posting",
   oneClickText:
-    "Publish instantly to Instagram, LinkedIn, Facebook, X, and more â€” all from one dashboard.",
+    "Publish instantly to Instagram, LinkedIn, Facebook, X, and more — all from one dashboard.",
 
   aiTitle: "AI Captions",
   aiText: "Let AI craft captions that match your tone and brand automatically.",
@@ -38,23 +38,23 @@ export const homeEn: HomeContent = {
 };
 
 export const homeSv: HomeContent = {
-  heroTitle: "VÃ¤lkommen till Postara",
+  heroTitle: "Välkommen till Postara",
   heroSubtitle:
-    "Hantera alla dina sociala plattformar pÃ¥ ett stÃ¤lle. SchemalÃ¤gg, skriv texter och publicera Ã¶verallt med ett klick.",
-  ctaStart: "Kom igÃ¥ng",
+    "Hantera alla dina sociala plattformar på ett ställe. Schemalägg, skriv texter och publicera överallt med ett klick.",
+  ctaStart: "Kom igång",
 
   oneClickTitle: "Publicera med ett klick",
   oneClickText:
-    "Publicera direkt till Instagram, LinkedIn, Facebook, X och fler â€” allt frÃ¥n en dashboard.",
+    "Publicera direkt till Instagram, LinkedIn, Facebook, X och fler — allt från en dashboard.",
 
   aiTitle: "AI-texter",
   aiText:
-    "LÃ¥t AI skapa texter som matchar din ton och ditt varumÃ¤rke automatiskt.",
+    "Låt AI skapa texter som matchar din ton och ditt varumärke automatiskt.",
 
   analyticsTitle: "Smart analys",
   analyticsText:
-    "FÃ¶lj engagemang och resultat i realtid Ã¶ver alla plattformar.",
+    "Följ engagemang och resultat i realtid över alla plattformar.",
 
-  readyTitle: "Redo att fÃ¶renkla dina sociala medier?",
+  readyTitle: "Redo att förenkla dina sociala medier?",
   ctaPlans: "Visa planer",
 };

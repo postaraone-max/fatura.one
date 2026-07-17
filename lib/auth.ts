@@ -17,24 +17,20 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
-
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
-
         if (!user || !user.password) {
           return null;
         }
-
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
           return null;
         }
-
         return {
           id: user.id,
           email: user.email,
-          role: user.role,
+          logoUrl: user.logoUrl,
         };
       },
     }),
@@ -42,15 +38,15 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        (session.user as any).id = token.id as string;
+        (session.user as any).logoUrl = token.logoUrl as string;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as { role?: string }).role;
+        token.logoUrl = (user as any).logoUrl;
       }
       return token;
     },
@@ -63,3 +59,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
 };
+
+export default authOptions;

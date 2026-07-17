@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -57,9 +57,9 @@ export default function RetryAdminPage() {
       <table className="min-w-full border border-gray-300">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-3 py-2 text-left border-b">Key</th>
-            <th className="px-3 py-2 text-left border-b">Value</th>
-            <th className="px-3 py-2 text-left border-b">Action</th>
+            <th className="px-3 py-2 text-start border-b">Key</th>
+            <th className="px-3 py-2 text-start border-b">Value</th>
+            <th className="px-3 py-2 text-start border-b">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -88,3 +88,4 @@ export default function RetryAdminPage() {
     </main>
   );
 }
+

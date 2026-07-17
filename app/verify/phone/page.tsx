@@ -77,7 +77,7 @@ export default function VerifyPhonePage() {
 
         {session?.user && (
           <PhoneVerification 
-            userId={session.user.id} 
+            userId={(session?.user as any)?.id || ""} 
             onVerified={handlePhoneVerified} 
           />
         )}
@@ -97,3 +97,4 @@ export default function VerifyPhonePage() {
     </div>
   );
 }
+

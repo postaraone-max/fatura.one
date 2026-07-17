@@ -1,10 +1,7 @@
-// app/invoices/page.tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from '@/lib/useTranslation';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
 interface Invoice {
   id: string;
@@ -12,185 +9,114 @@ interface Invoice {
   customerName: string;
   total: number;
   status: string;
+  viewCount: number;
   createdAt: string;
 }
 
 export default function InvoicesPage() {
-  const router = useRouter();
-  const { t, lang } = useTranslation();
-  const { data: session, status } = useSession();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (status === 'unauthenticated') {
-      router.push('/api/auth/signin');
-      return;
-    }
+    fetch("/api/invoices")
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response format");
+        }
+        setInvoices(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Invoices fetch error:", err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
-    if (status === 'authenticated') {
-      fetchInvoices();
-    }
-  }, [status, router]);
-
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('/api/invoices');
-      
-      if (response.status === 401) {
-        router.push('/api/auth/signin');
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch invoices');
-      }
-      
-      const data = await response.json();
-      setInvoices(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t.common.error);
-      console.error('Error fetching invoices:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(
-      lang === 'en' ? 'en-US' : 
-      lang === 'sv' ? 'sv-SE' :
-      lang === 'ku' ? 'ckb-IR' : 'ar-EG',
-      { year: 'numeric', month: 'short', day: 'numeric' }
-    );
-  };
-
-  const getStatusBadge = (status: string) => {
-    if (status === 'PAID') {
-      return <span className="badge-paid">{t.invoices.paid}</span>;
-    }
-    return <span className="badge-draft">{t.invoices.draft}</span>;
-  };
-
-  if (status === 'loading' || loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">{t.common.loading}</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-danger/10 border border-danger/20 text-danger px-4 py-3 rounded-lg">
-          {error}
-        </div>
-        <button
-          onClick={() => fetchInvoices()}
-          className="mt-4 btn-primary"
-        >
-          {t.common.save} {/* Using save as retry */}
-        </button>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-4">Loading invoices...</div>;
+  if (error) return (
+    <div className="p-4 text-red-500">
+      <p><strong>Error loading invoices:</strong></p>
+      <p className="text-sm">{error}</p>
+      <button 
+        onClick={() => window.location.reload()}
+        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Retry
+      </button>
+    </div>
+  );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {t.invoices.title}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {invoices.length} {invoices.length === 1 ? 'invoice' : 'invoices'}
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/invoice/new')}
-          className="btn-primary mt-3 sm:mt-0"
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">My Invoices</h1>
+        <Link
+          href="/invoice/new"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {t.nav.newInvoice}
-        </button>
+          + New Invoice
+        </Link>
       </div>
 
       {invoices.length === 0 ? (
-        <div className="card p-12 empty-state">
-          <svg 
-            className="empty-state-icon" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-            />
-          </svg>
-          <h3 className="empty-state-title">{t.invoices.noInvoices}</h3>
-          <p className="empty-state-description">{t.invoices.createFirst}</p>
-          <button
-            onClick={() => router.push('/invoice/new')}
-            className="btn-primary"
-          >
-            {t.nav.newInvoice}
-          </button>
-        </div>
+        <p className="text-gray-500">No invoices yet. Create your first invoice.</p>
       ) : (
-        <div className="table-container">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="table-header">{t.invoices.invoiceNumber}</th>
-                  <th className="table-header">{t.invoices.customer}</th>
-                  <th className="table-header">{t.invoices.date}</th>
-                  <th className="table-header">{t.invoices.total}</th>
-                  <th className="table-header">{t.invoices.status}</th>
-                  <th className="table-header">{t.invoices.view}</th>
+        <div className="overflow-x-auto">
+          <table className="w-full border">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border p-2 text-left">Invoice #</th>
+                <th className="border p-2 text-left">Customer</th>
+                <th className="border p-2 text-right">Total</th>
+                <th className="border p-2 text-left">Status</th>
+                <th className="border p-2 text-center">Views</th>
+                <th className="border p-2 text-left">Date</th>
+                <th className="border p-2 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((inv) => (
+                <tr key={inv.id} className="hover:bg-gray-50">
+                  <td className="border p-2">{inv.invoiceNumber}</td>
+                  <td className="border p-2">{inv.customerName}</td>
+                  <td className="border p-2 text-right">
+                    {typeof inv.total === 'number' ? inv.total.toFixed(2) : '0.00'}
+                  </td>
+                  <td className="border p-2">
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      inv.status === "PAID" ? "bg-green-100 text-green-800" :
+                      inv.status === "VIEWED" ? "bg-yellow-100 text-yellow-800" :
+                      inv.status === "SENT" ? "bg-blue-100 text-blue-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {inv.status || "DRAFT"}
+                    </span>
+                  </td>
+                  <td className="border p-2 text-center">{inv.viewCount || 0}</td>
+                  <td className="border p-2">
+                    {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td className="border p-2 text-center">
+                    <Link
+                      href={`/invoice/${inv.id}/view`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </Link>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {invoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="table-cell font-medium text-gray-900">
-                      {invoice.invoiceNumber}
-                    </td>
-                    <td className="table-cell text-gray-500">
-                      {invoice.customerName}
-                    </td>
-                    <td className="table-cell text-gray-500">
-                      {formatDate(invoice.createdAt)}
-                    </td>
-                    <td className="table-cell text-gray-900 font-medium">
-                      {invoice.total.toFixed(2)}
-                    </td>
-                    <td className="table-cell">
-                      {getStatusBadge(invoice.status)}
-                    </td>
-                    <td className="table-cell">
-                      <button
-                        onClick={() => router.push(`/invoice/${invoice.id}`)}
-                        className="text-primary hover:text-primary-dark font-medium transition-colors"
-                      >
-                        {t.invoices.view}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

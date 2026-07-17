@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @deprecated
  * Test helper removed.
  *

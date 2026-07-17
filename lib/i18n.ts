@@ -1,18 +1,18 @@
-Ôªøexport type Lang = "sv" | "en";
+export type Lang = "sv" | "en";
 
 export const DICT = {
   // Common
   back: { sv: "Tillbaka", en: "Back" },
-  content: { sv: "Inneh√•ll", en: "Content" },
+  content: { sv: "InnehÂll", en: "Content" },
   status: { sv: "Status:", en: "Status:" },
   created: { sv: "Skapad:", en: "Created:" },
 
   // Decisions (actions)
-  submitForApproval: { sv: "Skicka f√∂r godk√§nnande", en: "Submit for approval" },
-  approve: { sv: "Godk√§nn", en: "Approve" },
-  lockDecision: { sv: "L√•s beslut", en: "Lock decision" },
+  submitForApproval: { sv: "Skicka fˆr godk‰nnande", en: "Submit for approval" },
+  approve: { sv: "Godk‰nn", en: "Approve" },
+  lockDecision: { sv: "LÂs beslut", en: "Lock decision" },
   working: { sv: "Arbetar...", en: "Working..." },
-  somethingWentWrong: { sv: "N√•got gick fel.", en: "Something went wrong." },
+  somethingWentWrong: { sv: "NÂgot gick fel.", en: "Something went wrong." },
 
   // Generic errors
   notFound: { sv: "Hittades inte.", en: "Not found." },

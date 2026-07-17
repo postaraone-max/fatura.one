@@ -1,4 +1,4 @@
-﻿/**
+/**
  * FUTURE: Real login/session service
  *
  * This file will contain the real functions for:

@@ -1,12 +1,11 @@
-// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Return early - no middleware logic for now
+  // Allow all requests - we'll handle auth on the client side
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [], // Empty matcher - disable middleware
+  matcher: [],
 };

@@ -1,4 +1,4 @@
-﻿// lib/facebook/pages.ts
+// lib/facebook/pages.ts
 //
 // Helpers for fetching Facebook Pages for a user, given a user access token.
 // We need this for LivePost to obtain a Page access token and basic page info,

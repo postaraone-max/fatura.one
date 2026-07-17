@@ -1,4 +1,4 @@
-﻿// Meta LivePost adapter for Facebook Page + Instagram Business.
+// Meta LivePost adapter for Facebook Page + Instagram Business.
 //
 // - Uses MetaConnectionRecord from KV (getMetaConnection).
 // - For Facebook: posts images/videos to the connected Page.

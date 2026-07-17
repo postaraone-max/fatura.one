@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -59,3 +59,4 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
+

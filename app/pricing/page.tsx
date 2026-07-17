@@ -1,136 +1,179 @@
-// app/pricing/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { useTranslation } from '@/lib/useTranslation';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { CheckIcon } from '@heroicons/react/24/outline';
+
+const plans = [
+  {
+    name: 'Free',
+    price: '$0',
+    description: 'Perfect for getting started',
+    features: [
+      '2 invoices per month',
+      '2 templates',
+      'Basic PDF export',
+      'Email support',
+    ],
+    cta: 'Current Plan',
+    popular: false,
+  },
+  {
+    name: 'Pro',
+    price: '$19',
+    period: '/month',
+    description: 'For growing businesses',
+    features: [
+      'Unlimited invoices',
+      '5 professional templates',
+      'Logo upload',
+      'Send via email',
+      'WhatsApp sharing',
+      'View tracking',
+      'Priority support',
+    ],
+    cta: 'Upgrade to Pro',
+    popular: true,
+  },
+  {
+    name: 'Business',
+    price: '$49',
+    period: '/month',
+    description: 'For teams and agencies',
+    features: [
+      'All Pro features',
+      '5 team members',
+      'Auto-reminders',
+      'Bulk invoicing',
+      'API access',
+      'Custom branding',
+      '24/7 phone support',
+    ],
+    cta: 'Contact Sales',
+    popular: false,
+  },
+];
 
 export default function PricingPage() {
-  const { t, lang } = useTranslation();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
+  const { data: session, status } = useSession();
+
+  const handleUpgrade = async (plan: string) => {
+    try {
+      const res = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: plan.toLowerCase() }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('No checkout URL returned:', data);
+        alert('Failed to start checkout. Please try again.');
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading pricing...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {t.pricing.title}
+            Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-gray-600">
-            {t.pricing.subtitle}
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Choose the plan that works best for your business. Upgrade or downgrade anytime.
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-gray-200 p-1 rounded-xl inline-flex gap-1">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-w-[120px] ${
-                billingCycle === 'monthly'
-                  ? 'bg-white text-indigo-600 shadow-md'
-                  : 'bg-transparent text-gray-600 hover:text-gray-900'
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`bg-white rounded-2xl shadow-lg overflow-hidden border-2 transition-all hover:shadow-xl ${
+                plan.popular ? 'border-blue-500 scale-105' : 'border-transparent'
               }`}
             >
-              {t.pricing.monthly}
-            </button>
-            <button
-              onClick={() => setBillingCycle('annually')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-w-[120px] ${
-                billingCycle === 'annually'
-                  ? 'bg-white text-indigo-600 shadow-md'
-                  : 'bg-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t.pricing.annually}
-              <span className="ml-1.5 text-xs text-green-600 font-semibold">
-                {lang === 'en' && 'Save 20%'}
-                {lang === 'sv' && 'Spara 20%'}
-                {lang === 'ku' && 'ڕزگارکردنی 20%'}
-                {lang === 'ar' && 'وفر 20%'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Free Plan */}
-          <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-8 border-2 border-gray-200">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {t.pricing.free}
-              </h2>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-gray-900">
-                  $0
-                </span>
-                <span className="text-gray-500 ml-2">
-                  / {billingCycle === 'monthly' ? 'mo' : 'yr'}
-                </span>
+              {plan.popular && (
+                <div className="bg-blue-500 text-white text-center text-sm font-medium py-1">
+                  Most Popular
+                </div>
+              )}
+              <div className="p-6">
+                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                <p className="text-gray-500 text-sm mt-1">{plan.description}</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                  {plan.period && (
+                    <span className="text-gray-500 text-sm ml-1">{plan.period}</span>
+                  )}
+                </div>
+                <ul className="mt-6 space-y-3">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-600 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  {session ? (
+                    plan.name === 'Free' ? (
+                      <button
+                        disabled
+                        className="w-full py-2 px-4 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed"
+                      >
+                        Current Plan
+                      </button>
+                    ) : plan.name === 'Business' ? (
+                      <a
+                        href="mailto:sales@fatura.one"
+                        className="w-full block text-center py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        Contact Sales
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => handleUpgrade('pro')}
+                        className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {plan.cta}
+                      </button>
+                    )
+                  ) : (
+                    <Link
+                      href="/auth/signin"
+                      className="w-full block text-center py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Sign In to Upgrade
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
-            <ul className="space-y-3 mb-8">
-              {t.pricing.freeFeatures.map((feature: string, index: number) => (
-                <li key={index} className="flex items-start gap-3">
-                  <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-gray-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <button className="w-full py-3 px-4 bg-gray-200 text-gray-500 rounded-xl font-medium cursor-not-allowed">
-              {t.common.save}
-            </button>
-          </div>
-
-          {/* Pro Plan */}
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 p-8 border-2 border-indigo-600 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-1 rounded-full text-xs font-semibold whitespace-nowrap">
-              {lang === 'en' && '🌟 Most Popular'}
-              {lang === 'sv' && '🌟 Mest Populära'}
-              {lang === 'ku' && '🌟 زۆرترین بەکارهێنەر'}
-              {lang === 'ar' && '🌟 الأكثر شيوعاً'}
-            </div>
-
-            <div className="text-center pt-2">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {t.pricing.pro}
-              </h2>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-indigo-600">
-                  $29
-                </span>
-                <span className="text-gray-500 ml-2">
-                  / {billingCycle === 'monthly' ? 'mo' : 'yr'}
-                </span>
-              </div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              {t.pricing.proFeatures.map((feature: string, index: number) => (
-                <li key={index} className="flex items-start gap-3">
-                  <svg className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-gray-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <button className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all duration-200">
-              {t.pricing.getStarted}
-            </button>
-          </div>
+          ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-gray-600 mb-4">{t.about.contactText}</p>
-          <a href="mailto:support@fatura.one" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            {t.pricing.contact}
-          </a>
+        <div className="text-center mt-12 text-sm text-gray-500">
+          <p>All plans include secure payments, mobile-responsive invoices, and 24/7 support.</p>
+          <p className="mt-1">
+            Need a custom plan? <a href="mailto:support@fatura.one" className="text-blue-600 hover:underline">Contact us</a>
+          </p>
         </div>
       </div>
     </div>

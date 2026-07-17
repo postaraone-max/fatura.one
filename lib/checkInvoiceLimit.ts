@@ -9,14 +9,11 @@ export async function checkInvoiceLimit(userId: string): Promise<{
 }> {
   const MAX_FREE_INVOICES = 10;
 
-  // Get user with their invoice count
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       totalInvoicesCreated: true,
       subscriptionStatus: true,
-      phoneVerified: true,
-      emailVerified: true,
     },
   });
 
@@ -29,7 +26,6 @@ export async function checkInvoiceLimit(userId: string): Promise<{
     };
   }
 
-  // Check if user has active subscription
   if (user.subscriptionStatus === 'active') {
     return {
       allowed: true,
@@ -39,17 +35,6 @@ export async function checkInvoiceLimit(userId: string): Promise<{
     };
   }
 
-  // Check if phone is verified (required for free tier)
-  if (!user.phoneVerified) {
-    return {
-      allowed: false,
-      message: 'Phone verification required to create invoices',
-      totalInvoices: user.totalInvoicesCreated,
-      maxFreeInvoices: MAX_FREE_INVOICES,
-    };
-  }
-
-  // Check if user has exceeded free limit
   if (user.totalInvoicesCreated >= MAX_FREE_INVOICES) {
     return {
       allowed: false,

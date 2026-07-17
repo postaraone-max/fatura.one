@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { LangCode, SUPPORTED_LANGS, DEFAULT_LANG } from "./i18nConfig";
@@ -91,3 +91,4 @@ export function useLang(): Ctx {
   if (!ctx) throw new Error("useLang must be used within LangProvider");
   return ctx;
 }
+

@@ -1,59 +1,34 @@
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { jwtVerify } from "jose"
+"use client";
 
-export default async function DashboardPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("authjs.session-token")?.value
+import Link from "next/link";
 
-  if (!token) {
-    redirect('/auth/signin')
-  }
+export default function DashboardPage() {
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard</h1>
+      <p className="text-slate-500 mb-6">Welcome back! Here's your invoice dashboard.</p>
 
-  try {
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
-    const { payload } = await jwtVerify(token, secret)
-    const email = payload.email as string
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Link
+          href="/invoice/new"
+          className="p-6 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition"
+        >
+          <h2 className="text-lg font-semibold text-blue-700">📄 New Invoice</h2>
+          <p className="text-sm text-blue-600">Create a new invoice using the 3-step wizard</p>
+        </Link>
 
-    return (
-      <div style={{ maxWidth: 800, margin: '50px auto', padding: '0 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1>Welcome to Fatura, {email}</h1>
-          <form action="/api/auth/signout" method="POST">
-            <button type="submit" style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc2626',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}>
-              Sign Out
-            </button>
-          </form>
+        <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
+          <h2 className="text-lg font-semibold text-slate-700">📊 Stats</h2>
+          <p className="text-sm text-slate-500">Coming soon: invoice analytics</p>
         </div>
 
-        <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          <div style={{ padding: 20, border: '1px solid #ddd', borderRadius: 8 }}>
-            <h3>📄 Create Invoice</h3>
-            <p>Create a new invoice</p>
-            <Link href="/invoices/create" style={{ color: '#0070f3' }}>Get Started →</Link>
-          </div>
-          <div style={{ padding: 20, border: '1px solid #ddd', borderRadius: 8 }}>
-            <h3>📱 Generate QR Code</h3>
-            <p>Create QR codes for invoices</p>
-            <Link href="/qr/create" style={{ color: '#0070f3' }}>Get Started →</Link>
-          </div>
-          <div style={{ padding: 20, border: '1px solid #ddd', borderRadius: 8 }}>
-            <h3>📄 Create ODF</h3>
-            <p>Generate ODF documents</p>
-            <Link href="/odf/create" style={{ color: '#0070f3' }}>Get Started →</Link>
-          </div>
+        <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
+          <h2 className="text-lg font-semibold text-slate-700">⚙️ Settings</h2>
+          <Link href="/settings" className="text-sm text-blue-600 hover:underline">
+            Manage your account →
+          </Link>
         </div>
       </div>
-    )
-  } catch (error) {
-    redirect('/auth/signin')
-  }
+    </div>
+  );
 }

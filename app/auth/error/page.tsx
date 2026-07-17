@@ -1,8 +1,8 @@
-﻿'use client'
-
+'use client'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -17,11 +17,19 @@ export default function AuthErrorPage() {
 
   return (
     <div style={{ maxWidth: 400, margin: '100px auto', textAlign: 'center' }}>
-      <h2 style={{ color: '#dc2626' }}>❌ Authentication Error</h2>
+      <h2 style={{ color: '#dc2626' }}>Authentication Error</h2>
       <p style={{ color: '#666' }}>{message}</p>
       <a href="/auth/signin" style={{ display: 'inline-block', marginTop: 20, color: '#0070f3' }}>
         Try again
       </a>
     </div>
+  )
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthErrorContent />
+    </Suspense>
   )
 }

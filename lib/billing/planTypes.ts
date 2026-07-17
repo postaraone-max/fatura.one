@@ -1,4 +1,4 @@
-﻿export type PlanName = "starter" | "campaign" | "pro" | "authority";
+export type PlanName = "starter" | "campaign" | "pro" | "authority";
 
 export type PlanStatus = {
   hasPlan: boolean;

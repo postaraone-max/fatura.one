@@ -1,4 +1,4 @@
-﻿export default function NotFound() {
+export default function NotFound() {
   return (
     <main style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ margin: 0, fontSize: 20 }}>404</h1>
@@ -6,3 +6,4 @@
     </main>
   );
 }
+
