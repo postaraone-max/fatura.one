@@ -1,43 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import prisma from "@/lib/prisma/client";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
-
-async function getUserId(request: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("authjs.session-token")?.value;
-  if (!token) return null;
+export async function GET() {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload.userId as string;
-  } catch {
-    return null;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        plan: true,
+        subscriptionStatus: true,
+      },
+    });
+
+    return NextResponse.json(user);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 });
   }
-}
-
-export async function GET(request: NextRequest) {
-  const userId = await getUserId(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      logoUrl: true,
-      plan: true,
-      preferredLanguage: true,
-    },
-  });
-
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(user);
 }

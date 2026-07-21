@@ -44,7 +44,6 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
       );
     }
 
-    // TRACK VIEW - Update view count
     try {
       await prisma.invoice.update({
         where: { id: invoice.id },
@@ -55,7 +54,6 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
         },
       });
     } catch (error) {
-      // Don't fail if tracking fails
       console.error('View tracking failed:', error);
     }
 
@@ -68,10 +66,19 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
       });
     };
 
+    const getPaymentBadge = () => {
+      if (invoice.status === 'PAID') {
+        return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">✅ PAID</span>;
+      }
+      if (invoice.status === 'PENDING') {
+        return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">⏳ PENDING</span>;
+      }
+      return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-red-100 text-red-800">❌ UNPAID</span>;
+    };
+
     return (
       <div className="min-h-screen bg-gray-50 py-10">
         <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8">
-          {/* Invoice Header */}
           <div className="flex justify-between items-start border-b pb-4">
             <div>
               {invoice.user?.image ? (
@@ -89,18 +96,20 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
                   {invoice.lastViewedAt && ` (last: ${formatDate(invoice.lastViewedAt)})`}
                 </p>
               )}
-              <span className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${
-                invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                invoice.viewCount > 0 ? 'bg-yellow-100 text-yellow-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {invoice.status || (invoice.viewCount > 0 ? 'VIEWED' : 'DRAFT')}
-              </span>
+              <div className="mt-2">
+                <span className={`inline-block px-3 py-1 text-xs rounded-full ${
+                  invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                  invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
+                  invoice.viewCount > 0 ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {invoice.status || (invoice.viewCount > 0 ? 'VIEWED' : 'DRAFT')}
+                </span>
+                {getPaymentBadge()}
+              </div>
             </div>
           </div>
 
-          {/* Customer Info */}
           <div className="mt-6">
             <h3 className="text-sm font-semibold text-gray-500 uppercase">Bill to</h3>
             <p className="text-lg font-medium">{invoice.customerName}</p>
@@ -108,7 +117,6 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
             {invoice.customerPhone && <p className="text-sm">{invoice.customerPhone}</p>}
           </div>
 
-          {/* Items Table */}
           <div className="mt-8 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -138,7 +146,7 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
             </table>
           </div>
 
-          {/* Bank Details */}
+          {/* Bank Details from Invoice (not User) */}
           {(invoice.bankName || invoice.bankAccount) && (
             <div className="mt-6 text-sm border-t pt-4">
               <p className="font-semibold">Bank Details</p>
@@ -148,7 +156,6 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
             </div>
           )}
 
-          {/* Action Buttons - Using Client Component */}
           <div className="mt-8 pt-6 border-t">
             <InvoiceActions
               invoiceId={invoice.id}
@@ -157,6 +164,7 @@ export default async function InvoiceViewPage({ params }: ViewPageProps) {
               customerEmail={invoice.customerEmail}
               total={invoice.total}
               currency={invoice.currency}
+              status={invoice.status}
             />
           </div>
 

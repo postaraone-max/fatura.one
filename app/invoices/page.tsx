@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/provider";
 
 interface Invoice {
   id: string;
@@ -14,6 +15,7 @@ interface Invoice {
 }
 
 export default function InvoicesPage() {
+  const { t } = useI18n();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,16 +43,17 @@ export default function InvoicesPage() {
       });
   }, []);
 
-  if (loading) return <div className="p-4">Loading invoices...</div>;
+  if (loading) return <div className="p-4">{t('loading')}</div>;
+  
   if (error) return (
     <div className="p-4 text-red-500">
-      <p><strong>Error loading invoices:</strong></p>
+      <p><strong>{t('error')}:</strong></p>
       <p className="text-sm">{error}</p>
       <button 
         onClick={() => window.location.reload()}
         className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        Retry
+        {t('retry') || 'Retry'}
       </button>
     </div>
   );
@@ -58,29 +61,37 @@ export default function InvoicesPage() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">My Invoices</h1>
+        <h1 className="text-2xl font-bold">{t('invoices')}</h1>
         <Link
           href="/invoice/new"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          + New Invoice
+          + {t('createInvoice')}
         </Link>
       </div>
 
       {invoices.length === 0 ? (
-        <p className="text-gray-500">No invoices yet. Create your first invoice.</p>
+        <div className="text-center py-12">
+          <p className="text-gray-500 mb-4">{t('noData')}</p>
+          <Link
+            href="/invoice/new"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          >
+            {t('createInvoice')}
+          </Link>
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border p-2 text-left">Invoice #</th>
-                <th className="border p-2 text-left">Customer</th>
-                <th className="border p-2 text-right">Total</th>
-                <th className="border p-2 text-left">Status</th>
-                <th className="border p-2 text-center">Views</th>
-                <th className="border p-2 text-left">Date</th>
-                <th className="border p-2 text-center">Actions</th>
+                <th className="border p-2 text-left">{t('invoiceNumber')}</th>
+                <th className="border p-2 text-left">{t('customerName')}</th>
+                <th className="border p-2 text-right">{t('total')}</th>
+                <th className="border p-2 text-left">{t('status')}</th>
+                <th className="border p-2 text-center">{t('views') || 'Views'}</th>
+                <th className="border p-2 text-left">{t('date')}</th>
+                <th className="border p-2 text-center">{t('actions') || 'Actions'}</th>
               </tr>
             </thead>
             <tbody>
@@ -98,7 +109,7 @@ export default function InvoicesPage() {
                       inv.status === "SENT" ? "bg-blue-100 text-blue-800" :
                       "bg-gray-100 text-gray-800"
                     }`}>
-                      {inv.status || "DRAFT"}
+                      {inv.status || t('draft')}
                     </span>
                   </td>
                   <td className="border p-2 text-center">{inv.viewCount || 0}</td>
@@ -110,7 +121,7 @@ export default function InvoicesPage() {
                       href={`/invoice/${inv.id}/view`}
                       className="text-blue-600 hover:underline"
                     >
-                      View
+                      {t('view') || 'View'}
                     </Link>
                   </td>
                 </tr>

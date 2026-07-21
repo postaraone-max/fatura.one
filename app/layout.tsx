@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { I18nProvider } from '@/lib/i18n/provider';
 import { Providers } from './providers';
+import { I18nProvider } from '@/lib/i18n/provider';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import Sidebar from '@/components/Sidebar';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -25,6 +26,9 @@ export default function RootLayout({
             <div className="flex h-screen bg-gray-50">
               <Sidebar />
               <main className="flex-1 overflow-auto p-8">
+                <div className="flex justify-end mb-4">
+                  <LanguageSwitcher />
+                </div>
                 {children}
               </main>
             </div>

@@ -1,32 +1,117 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useI18n } from '@/lib/i18n/provider';
+import DashboardStats from '@/components/DashboardStats';
+import DashboardChart from '@/components/DashboardChart';
+import RecentActivity from '@/components/RecentActivity';
+import { Loader2 } from 'lucide-react';
+
+interface DashboardData {
+  stats: {
+    totalInvoices: number;
+    draftInvoices: number;
+    sentInvoices: number;
+    paidInvoices: number;
+    totalRevenue: number;
+    uniqueClients: number;
+    viewCount: number;
+  };
+  monthlyRevenue: {
+    month: string;
+    revenue: number;
+    invoices: number;
+  }[];
+  recentActivity: {
+    id: string;
+    type: 'created' | 'sent' | 'paid' | 'viewed';
+    invoiceNumber: string;
+    customerName: string;
+    amount: number;
+    timestamp: string;
+  }[];
+}
 
 export default function DashboardPage() {
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard</h1>
-      <p className="text-slate-500 mb-6">Welcome back! Here's your invoice dashboard.</p>
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { t } = useI18n();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link
-          href="/invoice/new"
-          className="p-6 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition"
-        >
-          <h2 className="text-lg font-semibold text-blue-700">📄 New Invoice</h2>
-          <p className="text-sm text-blue-600">Create a new invoice using the 3-step wizard</p>
-        </Link>
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
 
-        <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
-          <h2 className="text-lg font-semibold text-slate-700">📊 Stats</h2>
-          <p className="text-sm text-slate-500">Coming soon: invoice analytics</p>
+    if (status === 'authenticated') {
+      fetchDashboardData();
+    }
+  }, [status, router]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/dashboard/stats');
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      const dashboardData = await response.json();
+      setData(dashboardData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === 'loading' || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
         </div>
+      </div>
+    );
+  }
 
-        <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
-          <h2 className="text-lg font-semibold text-slate-700">⚙️ Settings</h2>
-          <Link href="/settings" className="text-sm text-blue-600 hover:underline">
-            Manage your account →
-          </Link>
+  if (!data) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        No dashboard data available
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          {t('dashboard.title')}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          {t('dashboard.subtitle')}
+        </p>
+      </div>
+
+      <DashboardStats stats={data.stats} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2">
+          <DashboardChart monthlyData={data.monthlyRevenue} />
+        </div>
+        <div className="lg:col-span-1">
+          <RecentActivity activities={data.recentActivity} />
         </div>
       </div>
     </div>

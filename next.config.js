@@ -1,24 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverActions: {},
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "www.postara.one",
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-      },
-    ],
+  transpilePackages: ['@react-pdf/renderer'],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Don't bundle these on the client
+      config.resolve.fallback = {
+        fs: false,
+        path: false,
+        crypto: false,
+        buffer: false,
+        stream: false,
+      };
+    }
+    return config;
   },
 };
 
 module.exports = nextConfig;
-
-
-module.exports = module.exports || {}; module.exports.headers = async () => ([{ source: '/api/postara/analytics/summary', headers: [{ key: 'Content-Type', value: 'application/json; charset=utf-8' }] }]);

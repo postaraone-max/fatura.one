@@ -1,7 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useI18n } from '@/lib/i18n/provider';
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -11,18 +10,18 @@ const languages = [
 ];
 
 export default function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
-  const router = useRouter();
+  const { locale, setLocale } = useI18n();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const lang = e.target.value;
-    setLanguage(lang);
-    router.refresh();
+    const newLang = e.target.value as 'en' | 'sv' | 'ku' | 'ar';
+    setLocale(newLang);
+    // Force reload to apply translations
+    window.location.reload();
   };
 
   return (
     <select
-      value={language}
+      value={locale}
       onChange={handleChange}
       className="bg-transparent border border-gray-300 rounded px-2 py-1 text-sm"
     >

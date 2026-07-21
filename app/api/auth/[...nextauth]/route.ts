@@ -37,6 +37,7 @@ const handler = NextAuth({
           throw new Error("Invalid credentials");
         }
 
+        // ✅ Return user object with all required fields
         return {
           id: user.id,
           email: user.email,
@@ -47,12 +48,15 @@ const handler = NextAuth({
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
+      // ✅ When user first logs in, store their ID in the token
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -61,6 +65,7 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      // ✅ Always set session.user.id from the token
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
@@ -69,6 +74,8 @@ const handler = NextAuth({
       return session;
     },
   },
+  // ✅ Add debug logging for development
+  debug: process.env.NODE_ENV === 'development',
 });
 
 export { handler as GET, handler as POST };

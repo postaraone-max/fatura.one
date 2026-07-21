@@ -1,3 +1,6 @@
+export const defaultLocale = 'en';
+export type Locale = 'en' | 'sv' | 'ku' | 'ar';
+
 export type TranslationKey = keyof typeof translations.en;
 
 export const translations = {
@@ -12,6 +15,32 @@ export const translations = {
     logout: "Logout",
     login: "Login",
     signup: "Sign Up",
+
+    // Dashboard
+    dashboard: {
+      title: 'Dashboard',
+      subtitle: 'Overview of your invoice activity',
+      stats: {
+        totalInvoices: 'Total Invoices',
+        totalRevenue: 'Total Revenue',
+        uniqueClients: 'Unique Clients',
+        invoiceViews: 'Invoice Views',
+        draft: 'Draft',
+        sent: 'Sent',
+        paid: 'Paid',
+      },
+      chart: {
+        title: 'Revenue & Invoice Trends',
+      },
+      activity: {
+        title: 'Recent Activity',
+        created: 'Invoice Created',
+        sent: 'Invoice Sent',
+        paid: 'Payment Received',
+        viewed: 'Invoice Viewed',
+        empty: 'No recent activity',
+      },
+    },
 
     // Invoice Wizard
     createInvoice: "Create Invoice",
@@ -59,6 +88,9 @@ export const translations = {
     unpaid: "Unpaid",
     draft: "Draft",
     overdue: "Overdue",
+    back: "Back",
+    next: "Next",
+    create: "Create",
 
     // Messages
     success: "Success!",
@@ -133,6 +165,32 @@ export const translations = {
     login: "Logga in",
     signup: "Registrera dig",
 
+    // Dashboard
+    dashboard: {
+      title: 'Dashboard',
+      subtitle: 'Översikt över din fakturaaktivitet',
+      stats: {
+        totalInvoices: 'Totalt Fakturor',
+        totalRevenue: 'Total Intäkt',
+        uniqueClients: 'Unika Klienter',
+        invoiceViews: 'Fakturavisningar',
+        draft: 'Utkast',
+        sent: 'Skickade',
+        paid: 'Betalda',
+      },
+      chart: {
+        title: 'Intäkt & Fakturatrender',
+      },
+      activity: {
+        title: 'Senaste Aktivitet',
+        created: 'Faktura Skapad',
+        sent: 'Faktura Skickad',
+        paid: 'Betalning Mottagen',
+        viewed: 'Faktura Visad',
+        empty: 'Ingen senaste aktivitet',
+      },
+    },
+
     // Invoice Wizard
     createInvoice: "Skapa Faktura",
     step1: "Dokumenttyp",
@@ -179,6 +237,9 @@ export const translations = {
     unpaid: "Obetald",
     draft: "Utkast",
     overdue: "Förfallen",
+    back: "Tillbaka",
+    next: "Nästa",
+    create: "Skapa",
 
     // Messages
     success: "Lyckades!",
@@ -245,29 +306,55 @@ export const translations = {
     // Navigation
     appName: "Fatura.one",
     dashboard: "داشبۆرد",
-    invoices: "فاکتورەکان",
-    clients: "خەریکەکان",
+    invoices: "پسووڵەکان",
+    clients: "کڕیارەکان",
     settings: "ڕێکخستنەکان",
     pricing: "نرخەکان",
-    logout: "دەرچوون",
+    logout: "چوونەدەرەوە",
     login: "چوونەژوورەوە",
     signup: "تۆمارکردن",
 
+    // Dashboard
+    dashboard: {
+      title: 'داشبۆرد',
+      subtitle: 'کورتەی چالاکییەکانی پسووڵەکانت',
+      stats: {
+        totalInvoices: 'کۆی پسووڵەکان',
+        totalRevenue: 'کۆی داهات',
+        uniqueClients: 'کڕیارە تایبەتەکان',
+        invoiceViews: 'بینینەکانی پسووڵە',
+        draft: 'نووسراو',
+        sent: 'نێردراو',
+        paid: 'دراوە',
+      },
+      chart: {
+        title: 'داهات و ڕەوتی پسووڵە',
+      },
+      activity: {
+        title: 'چالاکییە نوێیەکان',
+        created: 'پسووڵە دروستکرا',
+        sent: 'پسووڵە نێردرا',
+        paid: 'پارە وەرگیرا',
+        viewed: 'پسووڵە بینرا',
+        empty: 'هیچ چالاکییەکی نوێ نیە',
+      },
+    },
+
     // Invoice Wizard
-    createInvoice: "دروستکردنی فاکتور",
-    step1: "جۆری بەڵگە",
+    createInvoice: "دروستکردنی پسووڵە",
+    step1: "جۆری بەڵگەنامە",
     step2: "وردەکارییەکان",
     step3: "پێشبینی و ناردن",
-    documentType: "جۆری بەڵگە",
-    invoice: "فاکتور",
-    receipt: "وەسڵ",
-    quote: "نرخاندن",
-    proforma: "پرۆفۆرما",
-    creditNote: "نۆتی کریت",
-    customerName: "ناوی خەریک",
-    customerEmail: "ئیمەیڵی خەریک",
-    customerPhone: "تەلەفۆنی خەریک",
-    customerAddress: "ناونیشانی خەریک",
+    documentType: "جۆری بەڵگەنامە",
+    invoice: "پسووڵە",
+    receipt: "پسووڵەی وەرگرتن",
+    quote: "پێشنیاری نرخ",
+    proforma: "پسووڵەی سەرەتایی",
+    creditNote: "پسووڵەی قەرەبوو",
+    customerName: "ناوی کڕیار",
+    customerEmail: "ئیمەیڵی کڕیار",
+    customerPhone: "ژمارەی تەلەفۆنی کڕیار",
+    customerAddress: "ناونیشانی کڕیار",
     taxId: "ژمارەی باج",
     items: "بەندەکان",
     description: "ڕوونکردنەوە",
@@ -292,13 +379,16 @@ export const translations = {
     share: "هاوبەشکردن",
     whatsapp: "واتسئاپ",
     email: "ئیمەیڵ",
-    invoiceNumber: "ژمارەی فاکتور",
+    invoiceNumber: "ژمارەی پسووڵە",
     date: "بەروار",
     status: "دۆخ",
     paid: "دراوە",
     unpaid: "نەدراوە",
     draft: "نووسراو",
     overdue: "دەرچووە",
+    back: "گەڕانەوە",
+    next: "داهاتوو",
+    create: "دروستکردن",
 
     // Messages
     success: "سەرکەوتووبوو!",
@@ -339,7 +429,7 @@ export const translations = {
     pro: "پڕۆ",
     business: "بازرگانی",
     month: "/مانگ",
-    invoicesPerMonth: "فاکتور لە مانگدا",
+    invoicesPerMonth: "پسووڵە لە مانگدا",
     unlimited: "بێ سنوور",
     templates: "مۆدێلەکان",
     logoUpload: "بارکردنی لۆگۆ",
@@ -355,8 +445,8 @@ export const translations = {
     // Landing Page
     heroTitle: "فاکتورسازی پیشەگەری بە سادەیی",
     heroSubtitle: "فاکتور دروست بکە، بنێرە و شوێنی بکەوە لە چەند خولەکدا. هیچ کارتی کریت پێویست نیە.",
-    heroButton: "دروستکردنی فاکتور ئێستا",
-    featuresTitle: "هەموو ئەو شتانەی کە پێویستە بۆ بەڕێوەبردنی فاکتورەکانت",
+    heroButton: "دروستکردنی پسووڵە ئێستا",
+    featuresTitle: "هەموو ئەو شتانەی کە پێویستە بۆ بەڕێوەبردنی پسووڵەکانت",
     testimonialsTitle: "ئەوەی بەکارهێنەرەکانمان دەڵێن",
     footer: "© 2026 Fatura.one. هەموو مافەکان پارێزراون.",
   },
@@ -372,6 +462,32 @@ export const translations = {
     logout: "تسجيل الخروج",
     login: "تسجيل الدخول",
     signup: "إنشاء حساب",
+
+    // Dashboard
+    dashboard: {
+      title: 'لوحة التحكم',
+      subtitle: 'نظرة عامة على نشاط فواتيرك',
+      stats: {
+        totalInvoices: 'إجمالي الفواتير',
+        totalRevenue: 'إجمالي الإيرادات',
+        uniqueClients: 'العملاء الفريدون',
+        invoiceViews: 'مشاهدات الفواتير',
+        draft: 'مسودة',
+        sent: 'مرسلة',
+        paid: 'مدفوعة',
+      },
+      chart: {
+        title: 'اتجاهات الإيرادات والفواتير',
+      },
+      activity: {
+        title: 'النشاط الأخير',
+        created: 'تم إنشاء الفاتورة',
+        sent: 'تم إرسال الفاتورة',
+        paid: 'تم استلام الدفع',
+        viewed: 'تم مشاهدة الفاتورة',
+        empty: 'لا يوجد نشاط حديث',
+      },
+    },
 
     // Invoice Wizard
     createInvoice: "إنشاء فاتورة",
@@ -419,6 +535,9 @@ export const translations = {
     unpaid: "غير مدفوعة",
     draft: "مسودة",
     overdue: "متأخرة",
+    back: "رجوع",
+    next: "التالي",
+    create: "إنشاء",
 
     // Messages
     success: "تم بنجاح!",

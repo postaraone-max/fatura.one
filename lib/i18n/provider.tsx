@@ -1,9 +1,7 @@
-// lib/i18n/provider.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { translations, defaultLocale, Locale } from './translations';
-import { getLocaleFromBrowser, setLocaleCookie, getLocaleCookie } from './utils';
 
 type I18nContextType = {
   locale: Locale;
@@ -18,23 +16,18 @@ export function I18nProvider({ children, initialLocale }: { children: React.Reac
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale);
 
   useEffect(() => {
-    const saved = getLocaleCookie();
-    const browser = getLocaleFromBrowser();
-    const detected = saved || browser || defaultLocale;
-    if (detected !== locale) {
-      setLocaleState(detected as Locale);
+    const saved = localStorage.getItem('language') as Locale;
+    if (saved && ['en', 'sv', 'ku', 'ar'].includes(saved)) {
+      setLocaleState(saved);
     }
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleCookie(newLocale);
+    localStorage.setItem('language', newLocale);
     setLocaleState(newLocale);
-    fetch('/api/user/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ language: newLocale }),
-    }).catch(() => {});
+    document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = newLocale;
+    window.location.reload();
   }, []);
 
   const t = useCallback(
@@ -45,7 +38,6 @@ export function I18nProvider({ children, initialLocale }: { children: React.Reac
         if (result && result[k] !== undefined) {
           result = result[k];
         } else {
-          console.warn(`Missing translation: ${key} for locale ${locale}`);
           return key;
         }
       }
@@ -54,7 +46,7 @@ export function I18nProvider({ children, initialLocale }: { children: React.Reac
     [locale]
   );
 
-  const dir = translations[locale]?.dir || 'ltr';
+  const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
     <I18nContext.Provider value={{ locale, setLocale, t, dir }}>

@@ -1,207 +1,186 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useI18n } from '@/lib/i18n/provider';
 import Step1_Type from './Step1_Type';
 import Step2_Details from './Step2_Details';
 import Step3_Preview from './Step3_Preview';
-import { invoiceFormSchema, defaultInvoiceValues, InvoiceFormData } from '@/lib/validations/invoice.schema';
+import { useRouter } from 'next/navigation';
 
-export default function NewInvoicePage() {
+export default function InvoiceNew() {
   const { t } = useI18n();
+  const router = useRouter();
   const [step, setStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<'invoice' | 'receipt' | 'quote' | 'proforma' | 'credit_note'>('invoice');
-  const [activeTab, setActiveTab] = useState<'customer' | 'items' | 'bank' | 'settings'>('customer');
-  const [template, setTemplate] = useState('Minimal');
-  const [createdInvoice, setCreatedInvoice] = useState<{ id: string; invoiceNumber: string } | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-
-  const methods = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema),
-    defaultValues: defaultInvoiceValues,
-    mode: 'onChange',
+  const [selectedType, setSelectedType] = useState('invoice');
+  const [formData, setFormData] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    customerAddress: '',
+    items: [{ description: '', quantity: 1, price: 0 }],
+    bankName: '',
+    bankAccount: '',
+    bankAccountName: '',
+    currency: 'SEK',
+    template: 'minimal',
   });
 
-  const { getValues, setValue } = methods;
-
-  const nextStep = () => setStep((s) => Math.min(s + 1, 3));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
-
-  const handleTypeSelect = (type: string) => {
-    setSelectedType(type as any);
-    setValue('documentType', type);
+  const handleNext = () => {
+    if (step === 1 && !selectedType) {
+      alert(t('required'));
+      return;
+    }
+    setStep(step + 1);
   };
 
-  const handleTemplateChange = (tpl: string) => {
-    setTemplate(tpl);
-    setValue('template', tpl);
+  const handleBack = () => {
+    setStep(step - 1);
   };
 
-  const handleCreateInvoice = async () => {
-    const data = getValues();
-    setIsCreating(true);
-    setError(null);
+  // ✅ CREATE: Save invoice to database
+  const handleCreate = async () => {
     try {
-      if (!data.customerName?.trim()) {
-        throw new Error('Customer name is required');
-      }
-      const payload = {
-        ...data,
-        template: template,
-        items: data.items || [],
+      const invoiceData = {
+        ...formData,
+        type: selectedType,
+        total: formData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
       };
 
       const response = await fetch('/api/invoices/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData),
       });
 
-      const result = await response.json();
-      console.log('📦 API response:', result);
-
-      if (result.id && result.invoiceNumber) {
-        setCreatedInvoice({ id: result.id, invoiceNumber: result.invoiceNumber });
-        setShowEmailModal(true);
-      } else {
-        throw new Error(`Unexpected response: ${JSON.stringify(result)}`);
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
       }
-    } catch (err: any) {
-      console.error('❌ Error:', err);
-      setError(err.message);
-    } finally {
-      setIsCreating(false);
+
+      const result = await response.json();
+      console.log('Invoice created:', result);
+      
+      // ✅ Show success and redirect
+      alert('✅ Invoice created successfully!');
+      router.push('/invoices');
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      alert('❌ Failed to create invoice. Please try again.');
     }
   };
 
-  const handleSendGuestInvoice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const emailInput = form.querySelector('#guest-email') as HTMLInputElement;
-    const email = emailInput?.value;
-
-    if (!email || !createdInvoice) return;
-
-    setIsCreating(true);
+  // ✅ SEND: Save invoice and show success
+  const handleSend = async () => {
     try {
-      const res = await fetch('/api/invoices/send-guest', {
+      const invoiceData = {
+        ...formData,
+        type: selectedType,
+        total: formData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+      };
+
+      const response = await fetch('/api/invoices/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoiceId: createdInvoice.id, email }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData),
       });
 
-      const data = await res.json();
-      if (data.success) {
-        alert('✅ Invoice sent to your email! Check your inbox.');
-        setShowEmailModal(false);
-      } else {
-        alert('❌ ' + (data.error || 'Failed to send invoice'));
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
       }
+
+      const result = await response.json();
+      console.log('Invoice created and sent:', result);
+      
+      // ✅ Show success and redirect
+      alert('✅ Invoice sent successfully!');
+      router.push('/invoices');
     } catch (error) {
-      alert('❌ An error occurred. Please try again.');
-    } finally {
-      setIsCreating(false);
+      console.error('Error sending invoice:', error);
+      alert('❌ Failed to send invoice. Please try again.\n\nError: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
+  };
+
+  const handleDownload = () => {
+    alert('📥 Download feature coming soon!');
+  };
+
+  const handleShare = () => {
+    alert('🔗 Share feature coming soon!');
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">{t('invoice.newTitle') || 'Create Invoice'}</h1>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">{t('createInvoice')}</h1>
 
-        <div className="flex items-center gap-4 mb-8">
-          {[1, 2, 3].map((s) => (
-            <div key={s} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step === s
-                    ? 'bg-blue-600 text-white'
-                    : step > s
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                {step > s ? '✓' : s}
-              </div>
-              {s < 3 && <div className="w-12 h-0.5 bg-gray-200 mx-2" />}
-            </div>
-          ))}
-        </div>
-
-        {step === 1 && (
-          <Step1_Type
-            onSelect={handleTypeSelect}
-            onNext={nextStep}
-            selected={selectedType}
-          />
-        )}
-
-        {step === 2 && (
-          <Step2_Details
-            methods={methods}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        )}
-
-        {step === 3 && (
-          <Step3_Preview
-            data={getValues()}
-            onBack={prevStep}
-            onTemplateChange={handleTemplateChange}
-            onCreateInvoice={handleCreateInvoice}
-            isCreating={isCreating}
-            error={error}
-            createdInvoice={createdInvoice}
-          />
-        )}
-
-        {/* Email Capture Modal */}
-        {showEmailModal && createdInvoice && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full p-6">
-              <h2 className="text-2xl font-bold mb-2">🎉 Invoice Created!</h2>
-              <p className="text-gray-600 mb-4">
-                Your invoice <strong>{createdInvoice.invoiceNumber}</strong> is ready.
-              </p>
-              <p className="text-gray-600 mb-6">
-                Enter your email to get the PDF and save your invoice.
-              </p>
-              <form id="email-form" onSubmit={handleSendGuestInvoice} className="space-y-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  required
-                  id="guest-email"
-                />
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Get My Invoice
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailModal(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+      {/* Step Progress */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className={`flex-1 h-2 rounded ${step >= 1 ? 'bg-blue-500' : 'bg-gray-200'}`} />
+        <div className={`flex-1 h-2 rounded ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`} />
+        <div className={`flex-1 h-2 rounded ${step >= 3 ? 'bg-blue-500' : 'bg-gray-200'}`} />
       </div>
-    </FormProvider>
+
+      {/* Step Content */}
+      {step === 1 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4">{t('step1')}</h2>
+          <Step1_Type selectedType={selectedType} onSelect={setSelectedType} />
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleNext}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+            >
+              {t('next') || 'Next'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4">{t('step2')}</h2>
+          <Step2_Details formData={formData} setFormData={setFormData} />
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={handleBack}
+              className="bg-gray-200 px-6 py-2 rounded-lg hover:bg-gray-300"
+            >
+              {t('back') || 'Back'}
+            </button>
+            <button
+              onClick={handleNext}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+            >
+              {t('next') || 'Next'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4">{t('step3')}</h2>
+          <Step3_Preview 
+            data={formData}
+            onSend={handleSend}
+            onDownload={handleDownload}
+            onShare={handleShare}
+            onCreate={handleCreate}
+          />
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={handleBack}
+              className="bg-gray-200 px-6 py-2 rounded-lg hover:bg-gray-300"
+            >
+              {t('back') || 'Back'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
