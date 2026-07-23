@@ -1,13 +1,145 @@
-// import React from 'react';
-// import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
-// TODO: Install @react-pdf/renderer and uncomment this component
+// Register fonts
+Font.register({
+  family: 'Helvetica',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf' },
+  ],
+});
 
-export default function MinimalTestPDF() {
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#1a56db',
+  },
+  section: {
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  label: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  value: {
+    fontSize: 10,
+    color: '#111827',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    padding: 8,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  col1: { width: '50%' },
+  col2: { width: '20%' },
+  col3: { width: '15%' },
+  col4: { width: '15%', textAlign: 'right' },
+  total: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'right',
+  },
+  bankSection: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    borderRadius: 4,
+  },
+});
+
+interface MinimalTestPDFProps {
+  data: {
+    invoiceNumber: string;
+    customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    total: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+    dueDate?: string;
+    items: Array<{
+      description: string;
+      quantity: number;
+      price: number;
+    }>;
+    bankName?: string;
+    bankAccount?: string;
+    bankAccountName?: string;
+  };
+}
+
+export default function MinimalTestPDF({ data }: MinimalTestPDFProps) {
   return (
-    <div className="p-4 bg-yellow-100 rounded-lg">
-      <p className="text-yellow-800">PDF component is temporarily disabled.</p>
-      <p className="text-yellow-600 text-sm">Run: npm install @react-pdf/renderer</p>
-    </div>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.title}>INVOICE</Text>
+
+        <View style={styles.section}>
+          <Text>Invoice #: {data.invoiceNumber}</Text>
+          <Text>Date: {data.createdAt}</Text>
+          {data.dueDate && <Text>Due: {data.dueDate}</Text>}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={{ fontWeight: 'bold' }}>Bill To:</Text>
+          <Text>{data.customerName}</Text>
+          {data.customerEmail && <Text>{data.customerEmail}</Text>}
+          {data.customerPhone && <Text>{data.customerPhone}</Text>}
+        </View>
+
+        <View style={styles.tableHeader}>
+          <Text style={styles.col1}>Description</Text>
+          <Text style={styles.col2}>Qty</Text>
+          <Text style={styles.col3}>Price</Text>
+          <Text style={styles.col4}>Total</Text>
+        </View>
+
+        {data.items.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={styles.col1}>{item.description}</Text>
+            <Text style={styles.col2}>{item.quantity}</Text>
+            <Text style={styles.col3}>{data.currency} {item.price.toFixed(2)}</Text>
+            <Text style={styles.col4}>{data.currency} {(item.price * item.quantity).toFixed(2)}</Text>
+          </View>
+        ))}
+
+        <Text style={styles.total}>
+          Total: {data.currency} {data.total.toFixed(2)}
+        </Text>
+
+        {(data.bankName || data.bankAccount || data.bankAccountName) && (
+          <View style={styles.bankSection}>
+            <Text style={{ fontWeight: 'bold' }}>Bank Details</Text>
+            {data.bankName && <Text>Bank: {data.bankName}</Text>}
+            {data.bankAccount && <Text>Account: {data.bankAccount}</Text>}
+            {data.bankAccountName && <Text>Beneficiary: {data.bankAccountName}</Text>}
+          </View>
+        )}
+      </Page>
+    </Document>
   );
 }
