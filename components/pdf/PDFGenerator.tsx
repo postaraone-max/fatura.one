@@ -1,7 +1,3 @@
-import React from 'react';
-import { renderToBuffer } from '@react-pdf/renderer';
-import MinimalTestPDF from './MinimalTestPDF';  // ✅ FIXED: Default import
-
 export interface InvoiceData {
   invoiceNumber: string;
   customerName: string;
@@ -23,15 +19,9 @@ export interface InvoiceData {
 }
 
 export async function generatePDF(data: InvoiceData): Promise<Buffer> {
-  const buffer = await renderToBuffer(
-    <MinimalTestPDF data={data} />
-  );
-  return Buffer.from(buffer);
+  // ... your PDF generation logic
 }
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
-  // This function is a wrapper for future expansion
   return generatePDF(data);
 }
-
-export default { generatePDF, generateInvoicePDF };
