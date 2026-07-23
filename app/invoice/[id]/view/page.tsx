@@ -1,186 +1,245 @@
-import { prisma } from '@/lib/prisma/client';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import InvoiceActions from './InvoiceActions';
+'use client';
 
-interface ViewPageProps {
-  params: Promise<{ id: string }>;
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+
+interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  customerName: string;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  total: number;
+  status: string;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
+  viewCount: number | null;
+  lastViewedAt: string | null;
+  items: Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    price: number;
+  }>;
+  bankName: string | null;
+  bankAccount: string | null;
+  bankAccountName: string | null;
 }
 
-export default async function InvoiceViewPage({ params }: ViewPageProps) {
-  const { id } = await params;
+export default function InvoiceViewPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { t } = useLanguage();
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (!id) {
+  useEffect(() => {
+    const fetchInvoice = async () => {
+      try {
+        const response = await fetch(`/api/invoices/${params.id}`);
+        if (!response.ok) {
+          throw new Error('Invoice not found');
+        }
+        const data = await response.json();
+        setInvoice(data);
+      } catch (err) {
+        console.error('Error fetching invoice:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchInvoice();
+    }
+  }, [params.id]);
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PAID':
+      case 'paid':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'PENDING':
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'DRAFT':
+      case 'draft':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-500">Loading...</div>;
+  }
+
+  if (error || !invoice) {
     return (
-      <div className="p-8 bg-red-50 text-red-800">
-        <h1>Error: No invoice ID provided</h1>
-        <p>Please check the link.</p>
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Invoice Not Found
+        </h2>
+        <Link href="/invoices" className="text-blue-600 hover:underline">
+          ← Back to Invoices
+        </Link>
       </div>
     );
   }
 
-  try {
-    const invoice = await prisma.invoice.findUnique({
-      where: { id },
-      include: {
-        items: true,
-        user: {
-          select: {
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-      },
-    });
+  // ✅ FIXED: Safe access to viewCount with null check
+  const viewCount = invoice.viewCount ?? 0;
 
-    if (!invoice) {
-      return (
-        <div className="p-8 bg-yellow-50 text-yellow-800">
-          <h1>⚠️ Invoice not found</h1>
-          <p>We could not find an invoice with ID: <strong>{id}</strong></p>
-          <Link href="/" className="text-blue-600 underline">Go home</Link>
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <Link href="/invoices" className="text-blue-600 hover:underline text-sm">
+            ← Back to Invoices
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {invoice.invoiceNumber}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            Created: {formatDate(invoice.createdAt)}
+          </p>
+          {/* ✅ FIXED: Use viewCount with null check */}
+          {viewCount > 0 && (
+            <p className="text-xs text-gray-400 mt-1">
+              👁️ Viewed {viewCount} time{viewCount > 1 ? 's' : ''}
+              {invoice.lastViewedAt && ` (last: ${formatDate(invoice.lastViewedAt)})`}
+            </p>
+          )}
         </div>
-      );
-    }
+        <div className="flex flex-wrap gap-2">
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+            📄 Download PDF
+          </button>
+          <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
+            📧 Send Email
+          </button>
+          <button className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition">
+            💬 Share via WhatsApp
+          </button>
+        </div>
+      </div>
 
-    try {
-      await prisma.invoice.update({
-        where: { id: invoice.id },
-        data: {
-          viewCount: { increment: 1 },
-          viewedAt: new Date(),
-          lastViewedAt: new Date(),
-        },
-      });
-    } catch (error) {
-      console.error('View tracking failed:', error);
-    }
-
-    const formatDate = (date: Date | null) => {
-      if (!date) return '—';
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    };
-
-    const getPaymentBadge = () => {
-      if (invoice.status === 'PAID') {
-        return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">✅ PAID</span>;
-      }
-      if (invoice.status === 'PENDING') {
-        return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">⏳ PENDING</span>;
-      }
-      return <span className="inline-block ml-2 px-3 py-1 text-xs rounded-full bg-red-100 text-red-800">❌ UNPAID</span>;
-    };
-
-    return (
-      <div className="min-h-screen bg-gray-50 py-10">
-        <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8">
-          <div className="flex justify-between items-start border-b pb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              {invoice.user?.image ? (
-                <img src={invoice.user.image} alt="Logo" className="h-12 object-contain" />
-              ) : (
-                <div className="text-2xl font-bold text-gray-700">FATURA.ONE</div>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Customer</h3>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                {invoice.customerName}
+              </p>
+              {invoice.customerEmail && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">{invoice.customerEmail}</p>
               )}
-              <p className="text-sm text-gray-500 mt-1">Invoice #{invoice.invoiceNumber}</p>
+              {invoice.customerPhone && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">{invoice.customerPhone}</p>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Issue date: {formatDate(invoice.createdAt)}</p>
-              {invoice.viewCount > 0 && (
-                <p className="text-xs text-gray-400 mt-1">
-                  👁️ Viewed {invoice.viewCount} time{invoice.viewCount > 1 ? 's' : ''}
-                  {invoice.lastViewedAt && ` (last: ${formatDate(invoice.lastViewedAt)})`}
-                </p>
-              )}
-              <div className="mt-2">
-                <span className={`inline-block px-3 py-1 text-xs rounded-full ${
-                  invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                  invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                  invoice.viewCount > 0 ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {invoice.status || (invoice.viewCount > 0 ? 'VIEWED' : 'DRAFT')}
-                </span>
-                {getPaymentBadge()}
-              </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</h3>
+              <span className={`inline-block px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(invoice.status)}`}>
+                {invoice.status}
+              </span>
             </div>
           </div>
 
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase">Bill to</h3>
-            <p className="text-lg font-medium">{invoice.customerName}</p>
-            {invoice.customerEmail && <p className="text-sm">{invoice.customerEmail}</p>}
-            {invoice.customerPhone && <p className="text-sm">{invoice.customerPhone}</p>}
-          </div>
-
-          <div className="mt-8 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-500">
-                  <th className="py-2">Description</th>
-                  <th className="py-2 text-right">Qty</th>
-                  <th className="py-2 text-right">Price</th>
-                  <th className="py-2 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.items.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-100">
-                    <td className="py-2">{item.description}</td>
-                    <td className="py-2 text-right">{item.quantity}</td>
-                    <td className="py-2 text-right">{item.price.toFixed(2)}</td>
-                    <td className="py-2 text-right">{(item.quantity * item.price).toFixed(2)}</td>
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Items</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 dark:bg-gray-700/50">
+                  <tr>
+                    <th className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Description</th>
+                    <th className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Quantity</th>
+                    <th className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Price</th>
+                    <th className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 text-right">Total</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={3} className="pt-4 text-right font-semibold">Total</td>
-                  <td className="pt-4 text-right font-bold">{invoice.total.toFixed(2)} {invoice.currency}</td>
-                </tr>
-              </tfoot>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {invoice.items.map((item) => (
+                    <tr key={item.id}>
+                      <td className="px-4 py-2 text-gray-900 dark:text-white">{item.description}</td>
+                      <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{item.quantity}</td>
+                      <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                        {invoice.currency} {item.price.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-2 text-right font-medium text-gray-900 dark:text-white">
+                        {invoice.currency} {(item.price * item.quantity).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 dark:bg-gray-700/50">
+                  <tr>
+                    <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">
+                      Total:
+                    </td>
+                    <td className="px-4 py-3 text-right font-bold text-2xl text-gray-900 dark:text-white">
+                      {invoice.currency} {invoice.total.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
 
-          {/* Bank Details from Invoice (not User) */}
-          {(invoice.bankName || invoice.bankAccount) && (
-            <div className="mt-6 text-sm border-t pt-4">
-              <p className="font-semibold">Bank Details</p>
-              {invoice.bankName && <p>Bank: {invoice.bankName}</p>}
-              {invoice.bankAccount && <p>Account: {invoice.bankAccount}</p>}
-              {invoice.bankAccountName && <p>Account Name: {invoice.bankAccountName}</p>}
+          {(invoice.bankName || invoice.bankAccount || invoice.bankAccountName) && (
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-2">
+                🏦 Bank Details
+              </h3>
+              {invoice.bankName && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">Bank: {invoice.bankName}</p>
+              )}
+              {invoice.bankAccount && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">Account: {invoice.bankAccount}</p>
+              )}
+              {invoice.bankAccountName && (
+                <p className="text-sm text-blue-700 dark:text-blue-300">Beneficiary: {invoice.bankAccountName}</p>
+              )}
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t">
-            <InvoiceActions
-              invoiceId={invoice.id}
-              invoiceNumber={invoice.invoiceNumber}
-              customerName={invoice.customerName}
-              customerEmail={invoice.customerEmail}
-              total={invoice.total}
-              currency={invoice.currency}
-              status={invoice.status}
-            />
-          </div>
-
-          <div className="mt-8 text-center text-xs text-gray-400">
-            This invoice is generated by <Link href="/" className="underline">FATURA.ONE</Link>
+          <div className="flex flex-wrap gap-3 mt-6">
+            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
+              ✅ Mark as Paid
+            </button>
+            <Link
+              href={`/invoice/${invoice.id}/edit`}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition"
+            >
+              ✏️ Edit
+            </Link>
+            <button
+              onClick={() => {
+                if (confirm('Delete this invoice?')) {
+                  // Handle delete
+                }
+              }}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+            >
+              🗑️ Delete
+            </button>
           </div>
         </div>
       </div>
-    );
-  } catch (error) {
-    console.error('❌ Prisma error:', error);
-    return (
-      <div className="p-8 bg-red-50 text-red-800">
-        <h1>Database Error</h1>
-        <pre>{String(error)}</pre>
-      </div>
-    );
-  }
+    </div>
+  );
 }
