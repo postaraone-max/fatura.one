@@ -1,92 +1,69 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import prisma from '@/lib/prisma';
 
-// ✅ GET: Fetch all invoices for the logged-in user
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const invoices = await prisma.invoice.findMany({
       where: {
         userId: session.user.id,
       },
+      include: {
+        items: true,
+        client: true,
+      },
       orderBy: {
         createdAt: 'desc',
-      },
-      include: {
-        client: true,
-        items: true,
       },
     });
 
     return NextResponse.json(invoices);
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    console.error('Invoices fetch error:', error);
     return NextResponse.json(
-      { error: "Failed to fetch invoices" },
+      { error: 'Failed to fetch invoices' },
       { status: 500 }
     );
   }
 }
 
-// ✅ POST: Create a new invoice
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    
-    // Generate invoice number
-    const date = new Date();
-    const dateStr = date.getFullYear() +
-      String(date.getMonth() + 1).padStart(2, '0') +
-      String(date.getDate()).padStart(2, '0');
-    
-    const count = await prisma.invoice.count({
-      where: {
-        createdAt: {
-          gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-        },
-      },
-    });
-    
-    const invoiceNumber = `INV-${dateStr}-${String(count + 1).padStart(4, '0')}`;
+    const body = await request.json();
 
-    // Calculate total from items
-    const total = body.items?.reduce((sum: number, item: any) => {
-      return sum + (Number(item.price) * Number(item.quantity));
-    }, 0) || 0;
-
-    // Create invoice with items
+    // ✅ FIXED: Removed 'customerAddress' (not in schema)
     const invoice = await prisma.invoice.create({
       data: {
-        invoiceNumber,
-        customerName: body.customerName || 'Guest',
+        invoiceNumber: body.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
+        userId: session.user.id,
+        clientId: body.clientId || null,
+        customerName: body.customerName || '',
         customerEmail: body.customerEmail || '',
         customerPhone: body.customerPhone || '',
-        customerAddress: body.customerAddress || '',
+        currency: body.currency || 'IQD',
+        total: body.total || 0,
+        status: body.status || 'DRAFT',
         bankName: body.bankName || '',
         bankAccount: body.bankAccount || '',
         bankAccountName: body.bankAccountName || '',
-        currency: body.currency || 'SEK',
-        total: total,
-        status: 'DRAFT',
-        userId: session.user.id,
         items: {
-          create: body.items?.filter((item: any) => item.description?.trim())?.map((item: any) => ({
-            description: item.description,
-            quantity: Number(item.quantity) || 0,
-            price: Number(item.price) || 0,
+          create: body.items?.map((item: any) => ({
+            description: item.description || '',
+            quantity: item.quantity || 1,
+            price: item.price || 0,
           })) || [],
         },
       },
@@ -97,11 +74,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(invoice, { status: 201 });
-    
   } catch (error) {
-    console.error("Error creating invoice:", error);
+    console.error('Invoice creation error:', error);
     return NextResponse.json(
-      { error: "Failed to create invoice: " + (error instanceof Error ? error.message : "Unknown error") },
+      { error: 'Failed to create invoice' },
       { status: 500 }
     );
   }
