@@ -32,9 +32,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // ✅ Ensure email is always a string (not null)
         return {
           id: user.id,
-          email: user.email,
+          email: user.email as string, // Force string type
           name: user.name,
         };
       },
