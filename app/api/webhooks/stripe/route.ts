@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-02-24.acacia' as any,
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
           },
         });
         
-        console.log(`✅ User ${userId} upgraded to ${plan}`);
+        console.log(`âœ… User ${userId} upgraded to ${plan}`);
       }
       
       // NEW: Check if this is an invoice payment
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
           },
         });
         
-        console.log(`✅ Invoice ${invoiceId} marked as PAID`);
+        console.log(`âœ… Invoice ${invoiceId} marked as PAID`);
       }
     }
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         },
       });
       
-      console.log(`✅ Subscription ${subscription.id} canceled`);
+      console.log(`âœ… Subscription ${subscription.id} canceled`);
     }
 
     return NextResponse.json({ received: true });

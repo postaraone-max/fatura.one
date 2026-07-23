@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     // Check if Stripe key exists
     if (!process.env.STRIPE_SECRET_KEY) {
-      console.error("❌ STRIPE_SECRET_KEY is missing in .env");
+      console.error("âŒ STRIPE_SECRET_KEY is missing in .env");
       return NextResponse.json(
         { error: "Stripe configuration error" },
         { status: 500 }
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-02-24.acacia",
+      apiVersion: "2025-02-24.acacia" as any,
     });
 
     const { plan } = await req.json();
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log("✅ Customer created:", customer.id);
+    console.log("âœ… Customer created:", customer.id);
 
     // Create checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
