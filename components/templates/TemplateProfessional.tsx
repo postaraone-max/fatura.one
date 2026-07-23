@@ -1,119 +1,202 @@
-import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
-import { InvoiceFormData } from "@/lib/validations/invoice.schema";
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 
-const styles = StyleSheet.create({
-  page: { padding: 0, backgroundColor: "#ffffff" },
-  headerBar: { backgroundColor: "#1e293b", padding: 30, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#ffffff" },
-  headerSub: { fontSize: 12, color: "#94a3b8", marginTop: 4 },
-  content: { padding: 30 },
-  infoGrid: { flexDirection: "row", justifyContent: "space-between", marginBottom: 30 },
-  infoColumn: { flex: 1 },
-  infoLabel: { fontSize: 10, color: "#6b7280", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 },
-  infoValue: { fontSize: 12, fontWeight: "medium", color: "#111827" },
-  table: { marginBottom: 30 },
-  tableHeader: { flexDirection: "row", backgroundColor: "#f1f5f9", padding: 10, borderBottom: "2px solid #1e293b" },
-  tableHeaderText: { fontSize: 10, fontWeight: "bold", color: "#1e293b", textTransform: "uppercase" },
-  tableRow: { flexDirection: "row", padding: 10, borderBottom: "1px solid #e5e7eb" },
-  tableCell: { fontSize: 10, color: "#111827" },
-  totalRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 20, borderTop: "2px solid #1e293b", paddingTop: 15 },
-  totalLabel: { fontSize: 16, fontWeight: "bold", color: "#1e293b", marginRight: 20 },
-  totalValue: { fontSize: 18, fontWeight: "bold", color: "#1e293b" },
-  footer: { marginTop: 30, paddingTop: 20, borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: 10, color: "#6b7280" },
+// Register fonts
+Font.register({
+  family: 'Helvetica',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf' },
+  ],
 });
 
-interface Props {
-  data: InvoiceFormData;
-  logoUrl?: string | null;
-  invoiceNumber?: string;
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica',
+  },
+  headerBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    borderBottomWidth: 4,
+    borderBottomColor: '#1a56db',
+    paddingBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1a56db',
+  },
+  headerSub: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  section: {
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  label: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  value: {
+    fontSize: 10,
+    color: '#111827',
+  },
+  table: {
+    display: 'flex',
+    width: 'auto',
+    marginBottom: 20,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#1a56db',
+    padding: 8,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  tableHeaderText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  col1: { width: '50%' },
+  col2: { width: '20%' },
+  col3: { width: '15%' },
+  col4: { width: '15%', textAlign: 'right' },
+  total: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'right',
+    color: '#1a56db',
+  },
+  bankSection: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    borderRadius: 4,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#9ca3af',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 10,
+  },
+});
+
+// ✅ FIXED: Define docTypeMap with proper typing
+const docTypeMap: Record<string, string> = {
+  invoice: 'INVOICE',
+  receipt: 'RECEIPT',
+  quote: 'QUOTE',
+  proforma: 'PROFORMA',
+  credit_note: 'CREDIT NOTE',
+};
+
+interface TemplateProfessionalProps {
+  data: {
+    documentType?: string;
+    invoiceNumber?: string;
+    customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    total: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+    dueDate?: string;
+    items: Array<{
+      description: string;
+      quantity: number;
+      price: number;
+    }>;
+    bankName?: string;
+    bankAccount?: string;
+    bankAccountName?: string;
+    logoUrl?: string;
+  };
 }
 
-export default function TemplateProfessional({ data, logoUrl, invoiceNumber }: Props) {
-  const subtotal = data.items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0);
-  const total = subtotal;
-
-  const docTypeMap: Record<string, string> = {
-    invoice: "INVOICE",
-    receipt: "RECEIPT",
-    quote: "QUOTE",
-    proforma: "PROFORMA INVOICE",
-    credit_note: "CREDIT NOTE",
-  };
+export default function TemplateProfessional({ data }: TemplateProfessionalProps) {
+  // ✅ FIXED: Safe access with fallback
+  const documentType = data.documentType || 'invoice';
+  const invoiceNumber = data.invoiceNumber || 'DRAFT-001';
+  const logoUrl = data.logoUrl;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerBar}>
           <View>
-            <Text style={styles.headerTitle}>{docTypeMap[data.documentType] || "INVOICE"}</Text>
-            <Text style={styles.headerSub}>#{invoiceNumber || "DRAFT-001"}</Text>
+            <Text style={styles.headerTitle}>{docTypeMap[documentType] || 'INVOICE'}</Text>
+            <Text style={styles.headerSub}>#{invoiceNumber}</Text>
           </View>
-          {logoUrl && <Image src={logoUrl} style={{ width: 60, height: 60, backgroundColor: "#ffffff", padding: 4 }} />}
+          {logoUrl && <Image src={logoUrl} style={{ width: 60, height: 60, backgroundColor: '#ffffff', padding: 4 }} />}
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.infoGrid}>
-            <View style={styles.infoColumn}>
-              <Text style={styles.infoLabel}>Bill To</Text>
-              <Text style={styles.infoValue}>{data.customerName}</Text>
-              {data.customerEmail && <Text style={styles.infoValue}>{data.customerEmail}</Text>}
-              {data.customerPhone && <Text style={styles.infoValue}>{data.customerPhone}</Text>}
-              {data.customerAddress && <Text style={styles.infoValue}>{data.customerAddress}</Text>}
-            </View>
-            <View style={styles.infoColumn}>
-              <Text style={styles.infoLabel}>Date</Text>
-              <Text style={styles.infoValue}>{data.dueDate ? new Date(data.dueDate).toLocaleDateString() : "N/A"}</Text>
-              <Text style={[styles.infoLabel, { marginTop: 8 }]}>Currency</Text>
-              <Text style={styles.infoValue}>{data.currency}</Text>
-            </View>
+        <View style={styles.section}>
+          <Text style={{ fontWeight: 'bold' }}>Bill To:</Text>
+          <Text>{data.customerName}</Text>
+          {data.customerEmail && <Text>{data.customerEmail}</Text>}
+          {data.customerPhone && <Text>{data.customerPhone}</Text>}
+        </View>
+
+        <View style={styles.section}>
+          <Text>Date: {data.createdAt}</Text>
+          {data.dueDate && <Text>Due: {data.dueDate}</Text>}
+        </View>
+
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderText, styles.col1]}>Description</Text>
+          <Text style={[styles.tableHeaderText, styles.col2]}>Qty</Text>
+          <Text style={[styles.tableHeaderText, styles.col3]}>Price</Text>
+          <Text style={[styles.tableHeaderText, styles.col4]}>Total</Text>
+        </View>
+
+        {data.items.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={styles.col1}>{item.description}</Text>
+            <Text style={styles.col2}>{item.quantity}</Text>
+            <Text style={styles.col3}>{data.currency} {item.price.toFixed(2)}</Text>
+            <Text style={styles.col4}>{data.currency} {(item.price * item.quantity).toFixed(2)}</Text>
           </View>
+        ))}
 
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, { flex: 3 }]}>Description</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: "right" }]}>Qty</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: "right" }]}>Price</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: "right" }]}>Total</Text>
-            </View>
-            {data.items.map((item, i) => (
-              <View style={styles.tableRow} key={i}>
-                <Text style={[styles.tableCell, { flex: 3 }]}>{item.description}</Text>
-                <Text style={[styles.tableCell, { flex: 1, textAlign: "right" }]}>{item.quantity}</Text>
-                <Text style={[styles.tableCell, { flex: 1, textAlign: "right" }]}>
-                  {data.currency} {item.price.toFixed(2)}
-                </Text>
-                <Text style={[styles.tableCell, { flex: 1, textAlign: "right" }]}>
-                  {data.currency} {(item.quantity * item.price).toFixed(2)}
-                </Text>
-              </View>
-            ))}
+        <Text style={styles.total}>
+          Total: {data.currency} {data.total.toFixed(2)}
+        </Text>
+
+        {(data.bankName || data.bankAccount || data.bankAccountName) && (
+          <View style={styles.bankSection}>
+            <Text style={{ fontWeight: 'bold' }}>Bank Details</Text>
+            {data.bankName && <Text>Bank: {data.bankName}</Text>}
+            {data.bankAccount && <Text>Account: {data.bankAccount}</Text>}
+            {data.bankAccountName && <Text>Beneficiary: {data.bankAccountName}</Text>}
           </View>
+        )}
 
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{data.currency} {total.toFixed(2)}</Text>
-          </View>
-
-          {data.notes && (
-            <View style={{ marginTop: 20 }}>
-              <Text style={styles.infoLabel}>Notes</Text>
-              <Text style={styles.infoValue}>{data.notes}</Text>
-            </View>
-          )}
-
-          {(data.bankName || data.bankAccount) && (
-            <View style={{ marginTop: 20, paddingTop: 15, borderTop: "1px solid #e5e7eb" }}>
-              <Text style={styles.infoLabel}>Bank Details</Text>
-              {data.bankName && <Text style={styles.infoValue}>{data.bankName}</Text>}
-              {data.bankAccount && <Text style={styles.infoValue}>Account: {data.bankAccount}</Text>}
-              {data.bankAccountName && <Text style={styles.infoValue}>Name: {data.bankAccountName}</Text>}
-            </View>
-          )}
-
-          <View style={styles.footer}>
-            <Text>Thank you for your business.</Text>
-            <Text style={{ fontSize: 8, color: "#9ca3af", marginTop: 4 }}>Generated by Fatura.one</Text>
-          </View>
+        <View style={styles.footer}>
+          <Text>Thank you for your business!</Text>
         </View>
       </Page>
     </Document>
