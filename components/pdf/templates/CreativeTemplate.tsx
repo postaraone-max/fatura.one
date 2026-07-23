@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
 // Register fonts
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   table: {
-    // ✅ FIXED: Use 'flex' instead of 'table'
+    // âœ… FIXED: Use 'flex' instead of 'table'
     display: 'flex',
     width: 'auto',
     marginBottom: 20,
