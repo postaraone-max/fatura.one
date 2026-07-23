@@ -1,81 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import prisma from "@/lib/prisma/client";
-import { supabase } from "@/lib/supabase/client";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import prisma from '@/lib/prisma';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
-
-async function getUserId(request: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("authjs.session-token")?.value;
-  if (!token) return null;
+// ✅ FIXED: Removed logoUrl since it doesn't exist in schema
+export async function POST(request: Request) {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload.userId as string;
-  } catch {
-    return null;
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const body = await request.json();
+    const { logoUrl } = body;
+
+    if (!logoUrl) {
+      return NextResponse.json(
+        { error: 'Logo URL is required' },
+        { status: 400 }
+      );
+    }
+
+    // ✅ FIXED: Use 'image' instead of 'logoUrl' (the actual field in schema)
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        image: logoUrl,  // Use 'image' instead of 'logoUrl'
+      },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Logo updated successfully',
+      logoUrl: logoUrl 
+    });
+  } catch (error) {
+    console.error('Logo update error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update logo' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
-  const userId = await getUserId(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function GET(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("logo") as File | null;
+    const session = await getServerSession(authOptions);
 
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Validate file type
-    const validTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (!validTypes.includes(file.type)) {
-      return NextResponse.json({ error: "Invalid file type. Use PNG, JPEG, WebP, or SVG." }, { status: 400 });
-    }
+    const userId = session.user.id;
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large. Max 2MB." }, { status: 400 });
-    }
-
-    const fileBuffer = await file.arrayBuffer();
-    const fileExt = file.name.split(".").pop() || "png";
-    const fileName = `${userId}/logo.${fileExt}`;
-
-    // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from("logos")
-      .upload(fileName, fileBuffer, {
-        contentType: file.type,
-        upsert: true, // Overwrite if exists
-      });
-
-    if (uploadError) {
-      console.error("Supabase upload error:", uploadError);
-      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("logos")
-      .getPublicUrl(fileName);
-
-    const logoUrl = urlData.publicUrl;
-
-    // Save URL to User table
-    await prisma.user.update({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
-      data: { logoUrl },
+      select: {
+        image: true,  // Use 'image' instead of 'logoUrl'
+      },
     });
 
-    return NextResponse.json({ success: true, logoUrl });
+    return NextResponse.json({
+      logoUrl: user?.image || null,
+    });
   } catch (error) {
-    console.error("Logo upload error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('Logo fetch error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch logo' },
+      { status: 500 }
+    );
   }
 }
