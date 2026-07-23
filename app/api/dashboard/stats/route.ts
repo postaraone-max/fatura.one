@@ -25,10 +25,10 @@ export async function GET() {
       where: { status: 'draft' },
     });
 
-    // Get total amount
-    const totalAmount = await prisma.invoice.aggregate({
+    // ✅ CORRECT: Use 'total' (not 'amount')
+    const totalAmountResult = await prisma.invoice.aggregate({
       _sum: {
-        amount: true,
+        total: true,
       },
     });
 
@@ -37,7 +37,7 @@ export async function GET() {
       paid: paidInvoices,
       pending: pendingInvoices,
       draft: draftInvoices,
-      totalAmount: totalAmount._sum.amount || 0,
+      totalAmount: totalAmountResult._sum.total || 0,
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
