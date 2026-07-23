@@ -22,20 +22,21 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (!user || !user.hashedPassword) {
+        // ✅ CHANGED: Use 'password' (not 'hashedPassword')
+        if (!user || !user.password) {
           return null;
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
+        // ✅ CHANGED: Use 'password' (not 'hashedPassword')
+        const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
           return null;
         }
 
-        // ✅ Ensure email is always a string (not null)
         return {
           id: user.id,
-          email: user.email as string, // Force string type
+          email: user.email as string,
           name: user.name,
         };
       },
