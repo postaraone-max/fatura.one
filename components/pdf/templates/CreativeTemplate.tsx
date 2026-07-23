@@ -1,273 +1,151 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+
+// Register fonts
+Font.register({
+  family: 'Helvetica',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf' },
+  ],
+});
 
 const styles = StyleSheet.create({
   page: {
-    padding: 0,
-    backgroundColor: '#FFFFFF',
+    padding: 40,
+    backgroundColor: '#ffffff',
     fontFamily: 'Helvetica',
   },
-  sidebar: {
-    backgroundColor: '#7C3AED',
-    padding: 30,
-    paddingTop: 40,
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 200,
-  },
-  sidebarText: {
-    color: '#FFFFFF',
-  },
-  sidebarTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 20,
-    letterSpacing: 4,
-  },
-  sidebarLabel: {
-    fontSize: 10,
-    color: '#C4B5FD',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  sidebarValue: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  content: {
-    marginLeft: 200,
-    padding: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-    paddingBottom: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#7C3AED',
-    borderBottomStyle: 'dashed',
-  },
-  docType: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
+    marginBottom: 20,
+    color: '#1a56db',
   },
-  tagline: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontStyle: 'italic',
+  section: {
+    marginBottom: 10,
   },
-  clientSection: {
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: '#F5F3FF',
-    borderRadius: 8,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
-  clientName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#7C3AED',
+  label: {
+    fontSize: 10,
+    color: '#6b7280',
   },
-  clientDetail: {
-    fontSize: 11,
-    color: '#4B5563',
-    marginTop: 2,
+  value: {
+    fontSize: 10,
+    color: '#111827',
   },
   table: {
-    display: 'table',
+    // ✅ FIXED: Use 'flex' instead of 'table'
+    display: 'flex',
     width: 'auto',
     marginBottom: 20,
   },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    padding: 8,
+    marginTop: 10,
+    marginBottom: 5,
+  },
   tableRow: {
     flexDirection: 'row',
+    padding: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingVertical: 10,
+    borderBottomColor: '#e5e7eb',
   },
-  tableHeader: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 12,
-    borderRadius: 4,
-  },
-  tableHeaderText: {
-    color: '#FFFFFF',
+  col1: { width: '50%' },
+  col2: { width: '20%' },
+  col3: { width: '15%' },
+  col4: { width: '15%', textAlign: 'right' },
+  total: {
+    fontSize: 14,
     fontWeight: 'bold',
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  tableCol1: { width: '50%', paddingLeft: 12 },
-  tableCol2: { width: '15%', textAlign: 'center' },
-  tableCol3: { width: '17%', textAlign: 'right' },
-  tableCol4: { width: '18%', textAlign: 'right', paddingRight: 12 },
-  totals: {
-    marginTop: 20,
-    alignItems: 'flex-end',
-    padding: 20,
-    backgroundColor: '#F5F3FF',
-    borderRadius: 8,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 6,
-  },
-  totalLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    width: 100,
+    marginTop: 10,
     textAlign: 'right',
-  },
-  totalValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#111827',
-    width: 120,
-    textAlign: 'right',
-  },
-  grandTotal: {
-    borderTopWidth: 2,
-    borderTopColor: '#7C3AED',
-    paddingTop: 10,
-    marginTop: 4,
-  },
-  grandTotalValue: {
-    fontSize: 20,
-    color: '#7C3AED',
   },
   bankSection: {
     marginTop: 20,
-    padding: 15,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#f0f9ff',
     borderWidth: 1,
-    borderColor: '#7C3AED',
-    borderStyle: 'dashed',
-  },
-  bankLabel: {
-    fontSize: 10,
-    color: '#7C3AED',
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  footer: {
-    marginTop: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 8,
-    color: '#6B7280',
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderColor: '#bae6fd',
+    borderRadius: 4,
   },
 });
 
-interface InvoiceData {
-  invoiceNumber: string;
-  createdAt: Date;
-  customerName: string;
-  customerPhone?: string | null;
-  customerEmail?: string | null;
-  items: Array<{ description: string; quantity: number; price: number }>;
-  total: number;
-  currency: string;
-  bankName?: string | null;
-  bankAccount?: string | null;
-  bankAccountName?: string | null;
+interface CreativeTemplateProps {
+  data: {
+    invoiceNumber: string;
+    customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    total: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+    dueDate?: string;
+    items: Array<{
+      description: string;
+      quantity: number;
+      price: number;
+    }>;
+    bankName?: string;
+    bankAccount?: string;
+    bankAccountName?: string;
+  };
 }
 
-export const CreativeTemplate = ({ data }: { data: InvoiceData }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.sidebar}>
-        <Text style={styles.sidebarTitle}>FATURA</Text>
-        <Text style={[styles.sidebarText, { fontSize: 12, marginBottom: 30 }]}>Creative Invoicing</Text>
+export default function CreativeTemplate({ data }: CreativeTemplateProps) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.title}>INVOICE</Text>
 
-        <Text style={styles.sidebarLabel}>Invoice Number</Text>
-        <Text style={styles.sidebarValue}>{data.invoiceNumber}</Text>
-
-        <Text style={styles.sidebarLabel}>Date</Text>
-        <Text style={styles.sidebarValue}>{new Date(data.createdAt).toLocaleDateString()}</Text>
-
-        <Text style={styles.sidebarLabel}>Currency</Text>
-        <Text style={styles.sidebarValue}>{data.currency}</Text>
-
-        {data.bankName && (
-          <>
-            <Text style={styles.sidebarLabel}>Payment Details</Text>
-            <Text style={[styles.sidebarText, { fontSize: 10, marginTop: 2 }]}>{data.bankName}</Text>
-            {data.bankAccountName && <Text style={[styles.sidebarText, { fontSize: 10 }]}>{data.bankAccountName}</Text>}
-            {data.bankAccount && <Text style={[styles.sidebarText, { fontSize: 10 }]}>#{data.bankAccount}</Text>}
-          </>
-        )}
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.docType}>Invoice</Text>
-            <Text style={styles.tagline}>Designed with care</Text>
-          </View>
-          <Text style={{ fontSize: 10, color: '#7C3AED', fontWeight: 'bold' }}>✨ Creative</Text>
+        <View style={styles.section}>
+          <Text>Invoice #: {data.invoiceNumber}</Text>
+          <Text>Date: {data.createdAt}</Text>
+          {data.dueDate && <Text>Due: {data.dueDate}</Text>}
         </View>
 
-        <View style={styles.clientSection}>
-          <Text style={styles.clientName}>{data.customerName}</Text>
-          {data.customerEmail && <Text style={styles.clientDetail}>📧 {data.customerEmail}</Text>}
-          {data.customerPhone && <Text style={styles.clientDetail}>📱 {data.customerPhone}</Text>}
+        <View style={styles.section}>
+          <Text style={{ fontWeight: 'bold' }}>Bill To:</Text>
+          <Text>{data.customerName}</Text>
+          {data.customerEmail && <Text>{data.customerEmail}</Text>}
+          {data.customerPhone && <Text>{data.customerPhone}</Text>}
         </View>
 
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCol1, styles.tableHeaderText]}>Description</Text>
-            <Text style={[styles.tableCol2, styles.tableHeaderText]}>Qty</Text>
-            <Text style={[styles.tableCol3, styles.tableHeaderText]}>Price</Text>
-            <Text style={[styles.tableCol4, styles.tableHeaderText]}>Total</Text>
-          </View>
-          {data.items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCol1}>✨ {item.description}</Text>
-              <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>{data.currency} {item.price.toFixed(2)}</Text>
-              <Text style={styles.tableCol4}>{data.currency} {(item.quantity * item.price).toFixed(2)}</Text>
-            </View>
-          ))}
+        <View style={styles.tableHeader}>
+          <Text style={styles.col1}>Description</Text>
+          <Text style={styles.col2}>Qty</Text>
+          <Text style={styles.col3}>Price</Text>
+          <Text style={styles.col4}>Total</Text>
         </View>
 
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal:</Text>
-            <Text style={styles.totalValue}>{data.currency} {data.total.toFixed(2)}</Text>
+        {data.items.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={styles.col1}>{item.description}</Text>
+            <Text style={styles.col2}>{item.quantity}</Text>
+            <Text style={styles.col3}>{data.currency} {item.price.toFixed(2)}</Text>
+            <Text style={styles.col4}>{data.currency} {(item.price * item.quantity).toFixed(2)}</Text>
           </View>
-          <View style={[styles.totalRow, styles.grandTotal]}>
-            <Text style={[styles.totalLabel, { fontWeight: 'bold' }]}>Total:</Text>
-            <Text style={[styles.totalValue, styles.grandTotalValue]}>{data.currency} {data.total.toFixed(2)}</Text>
-          </View>
-        </View>
+        ))}
 
-        {data.bankName && (
+        <Text style={styles.total}>
+          Total: {data.currency} {data.total.toFixed(2)}
+        </Text>
+
+        {(data.bankName || data.bankAccount || data.bankAccountName) && (
           <View style={styles.bankSection}>
-            <Text style={styles.bankLabel}>💳 Bank Transfer</Text>
-            <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{data.bankName}</Text>
-            {data.bankAccountName && <Text style={{ fontSize: 10, color: '#111827' }}>{data.bankAccountName}</Text>}
-            {data.bankAccount && <Text style={{ fontSize: 10, color: '#111827' }}>Account: {data.bankAccount}</Text>}
+            <Text style={{ fontWeight: 'bold' }}>Bank Details</Text>
+            {data.bankName && <Text>Bank: {data.bankName}</Text>}
+            {data.bankAccount && <Text>Account: {data.bankAccount}</Text>}
+            {data.bankAccountName && <Text>Beneficiary: {data.bankAccountName}</Text>}
           </View>
         )}
-
-        <View style={styles.footer}>
-          <Text>✨ Thank you for choosing Fatura.one</Text>
-          <Text>Generated with ❤️</Text>
-        </View>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+}
