@@ -1,242 +1,185 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+
+// Register fonts
+Font.register({
+  family: 'Helvetica',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxP.ttf' },
+  ],
+});
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#ffffff',
     fontFamily: 'Helvetica',
-  },
-  content: {
-    backgroundColor: '#FFFFFF',
-    padding: 40,
-    borderRadius: 8,
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
   },
   header: {
     borderBottomWidth: 4,
-    borderBottomColor: '#1A1A2E',
-    paddingBottom: 20,
-    marginBottom: 30,
+    borderBottomColor: '#1a56db',
+    paddingBottom: 10,
+    marginBottom: 20,
   },
-  companyName: {
-    fontSize: 36,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#1A1A2E',
-    letterSpacing: 4,
+    color: '#1a56db',
+    marginBottom: 5,
   },
-  docType: {
-    fontSize: 20,
-    color: '#4A4A6A',
-    fontWeight: 'light',
-    marginTop: 4,
+  subtitle: {
+    fontSize: 12,
+    color: '#6b7280',
   },
-  metaGrid: {
+  section: {
+    marginBottom: 10,
+  },
+  row: {
     flexDirection: 'row',
-    marginBottom: 30,
-    backgroundColor: '#F8F9FA',
-    padding: 15,
-    borderRadius: 4,
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
-  metaItem: {
-    flex: 1,
+  label: {
+    fontSize: 10,
+    color: '#6b7280',
   },
-  metaLabel: {
-    fontSize: 9,
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  metaValue: {
-    fontSize: 13,
-    color: '#1A1A2E',
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  clientBox: {
-    marginBottom: 30,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 4,
-  },
-  clientLabel: {
-    fontSize: 9,
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  clientName: {
-    fontSize: 16,
-    color: '#1A1A2E',
-    fontWeight: 'bold',
+  value: {
+    fontSize: 10,
+    color: '#111827',
   },
   table: {
-    display: 'table',
+    display: 'flex',
     width: 'auto',
     marginBottom: 20,
   },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingVertical: 10,
-  },
   tableHeader: {
-    backgroundColor: '#1A1A2E',
-    paddingVertical: 12,
-    borderRadius: 4,
+    flexDirection: 'row',
+    backgroundColor: '#1a56db',
+    padding: 8,
+    marginTop: 10,
+    marginBottom: 5,
   },
   tableHeaderText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: '#ffffff',
     fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  tableCol1: { width: '50%', paddingLeft: 12 },
-  tableCol2: { width: '15%', textAlign: 'center' },
-  tableCol3: { width: '17%', textAlign: 'right' },
-  tableCol4: { width: '18%', textAlign: 'right', paddingRight: 12 },
-  totals: {
-    marginTop: 20,
-    alignItems: 'flex-end',
-    paddingRight: 12,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 6,
-  },
-  totalLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    width: 100,
-    textAlign: 'right',
-    textTransform: 'uppercase',
-  },
-  totalValue: {
-    fontSize: 11,
     fontWeight: 'bold',
-    color: '#1A1A2E',
-    width: 120,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  col1: { width: '50%' },
+  col2: { width: '20%' },
+  col3: { width: '15%' },
+  col4: { width: '15%', textAlign: 'right' },
+  total: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 10,
     textAlign: 'right',
+    color: '#1a56db',
   },
-  grandTotal: {
-    borderTopWidth: 2,
-    borderTopColor: '#1A1A2E',
-    paddingTop: 10,
-    marginTop: 4,
-  },
-  grandTotalValue: {
-    fontSize: 20,
-    color: '#1A1A2E',
+  bankSection: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    borderRadius: 4,
   },
   footer: {
-    marginTop: 30,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 9,
-    color: '#6B7280',
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
     textAlign: 'center',
+    fontSize: 8,
+    color: '#9ca3af',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 10,
   },
 });
 
-interface InvoiceData {
-  invoiceNumber: string;
-  createdAt: Date;
-  customerName: string;
-  customerPhone?: string | null;
-  customerEmail?: string | null;
-  items: Array<{ description: string; quantity: number; price: number }>;
-  total: number;
-  currency: string;
-  bankName?: string | null;
-  bankAccount?: string | null;
-  bankAccountName?: string | null;
+interface ExecutiveTemplateProps {
+  data: {
+    invoiceNumber: string;
+    customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    total: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+    dueDate?: string;
+    items: Array<{
+      description: string;
+      quantity: number;
+      price: number;
+    }>;
+    bankName?: string;
+    bankAccount?: string;
+    bankAccountName?: string;
+  };
 }
 
-export const ExecutiveTemplate = ({ data }: { data: InvoiceData }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.content}>
+export default function ExecutiveTemplate({ data }: ExecutiveTemplateProps) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.companyName}>FATURA</Text>
-          <Text style={styles.docType}>Executive Invoice</Text>
+          <Text style={styles.title}>INVOICE</Text>
+          <Text style={styles.subtitle}>Executive Template</Text>
         </View>
 
-        <View style={styles.metaGrid}>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Invoice Number</Text>
-            <Text style={styles.metaValue}>{data.invoiceNumber}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Date Issued</Text>
-            <Text style={styles.metaValue}>{new Date(data.createdAt).toLocaleDateString()}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Currency</Text>
-            <Text style={styles.metaValue}>{data.currency}</Text>
-          </View>
+        <View style={styles.section}>
+          <Text>Invoice #: {data.invoiceNumber}</Text>
+          <Text>Date: {data.createdAt}</Text>
+          {data.dueDate && <Text>Due: {data.dueDate}</Text>}
         </View>
 
-        <View style={styles.clientBox}>
-          <Text style={styles.clientLabel}>Client</Text>
-          <Text style={styles.clientName}>{data.customerName}</Text>
-          {data.customerEmail && <Text style={{ marginTop: 4, fontSize: 11, color: '#4A4A6A' }}>{data.customerEmail}</Text>}
-          {data.customerPhone && <Text style={{ fontSize: 11, color: '#4A4A6A' }}>{data.customerPhone}</Text>}
+        <View style={styles.section}>
+          <Text style={{ fontWeight: 'bold' }}>Bill To:</Text>
+          <Text>{data.customerName}</Text>
+          {data.customerEmail && <Text>{data.customerEmail}</Text>}
+          {data.customerPhone && <Text>{data.customerPhone}</Text>}
         </View>
 
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCol1, styles.tableHeaderText]}>Description</Text>
-            <Text style={[styles.tableCol2, styles.tableHeaderText]}>Quantity</Text>
-            <Text style={[styles.tableCol3, styles.tableHeaderText]}>Price</Text>
-            <Text style={[styles.tableCol4, styles.tableHeaderText]}>Total</Text>
-          </View>
-          {data.items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCol1}>{item.description}</Text>
-              <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>{data.currency} {item.price.toFixed(2)}</Text>
-              <Text style={styles.tableCol4}>{data.currency} {(item.quantity * item.price).toFixed(2)}</Text>
-            </View>
-          ))}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderText, styles.col1]}>Description</Text>
+          <Text style={[styles.tableHeaderText, styles.col2]}>Qty</Text>
+          <Text style={[styles.tableHeaderText, styles.col3]}>Price</Text>
+          <Text style={[styles.tableHeaderText, styles.col4]}>Total</Text>
         </View>
 
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>{data.currency} {data.total.toFixed(2)}</Text>
+        {data.items.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={styles.col1}>{item.description}</Text>
+            <Text style={styles.col2}>{item.quantity}</Text>
+            <Text style={styles.col3}>{data.currency} {item.price.toFixed(2)}</Text>
+            <Text style={styles.col4}>{data.currency} {(item.price * item.quantity).toFixed(2)}</Text>
           </View>
-          <View style={[styles.totalRow, styles.grandTotal]}>
-            <Text style={[styles.totalLabel, { fontWeight: 'bold' }]}>Total Due</Text>
-            <Text style={[styles.totalValue, styles.grandTotalValue]}>{data.currency} {data.total.toFixed(2)}</Text>
-          </View>
-        </View>
+        ))}
 
-        {data.bankName && (
-          <View style={{ marginTop: 20, padding: 15, backgroundColor: '#F8F9FA', borderRadius: 4 }}>
-            <Text style={{ fontSize: 9, color: '#6B7280', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
-              Payment Information
-            </Text>
-            <Text style={{ fontSize: 10, color: '#1A1A2E', marginBottom: 2 }}>{data.bankName}</Text>
-            {data.bankAccountName && <Text style={{ fontSize: 10, color: '#1A1A2E', marginBottom: 2 }}>{data.bankAccountName}</Text>}
-            {data.bankAccount && <Text style={{ fontSize: 10, color: '#1A1A2E' }}>Account: {data.bankAccount}</Text>}
+        <Text style={styles.total}>
+          Total: {data.currency} {data.total.toFixed(2)}
+        </Text>
+
+        {(data.bankName || data.bankAccount || data.bankAccountName) && (
+          <View style={styles.bankSection}>
+            <Text style={{ fontWeight: 'bold' }}>Bank Details</Text>
+            {data.bankName && <Text>Bank: {data.bankName}</Text>}
+            {data.bankAccount && <Text>Account: {data.bankAccount}</Text>}
+            {data.bankAccountName && <Text>Beneficiary: {data.bankAccountName}</Text>}
           </View>
         )}
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>This invoice is generated electronically and is valid without signature.</Text>
-          <Text style={[styles.footerText, { marginTop: 4 }]}>© Fatura.one - Professional Invoicing Platform</Text>
+          <Text>Thank you for your business!</Text>
         </View>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+}
