@@ -23,9 +23,9 @@ export interface InvoiceData {
 }
 
 export async function generatePDF(data: InvoiceData): Promise<Buffer> {
-  // ✅ FIXED: Render the PDF component and return the buffer
+  // ✅ FIXED: Render the PDF component directly in JSX
   const buffer = await renderToBuffer(
-    React.createElement(MinimalTestPDF, { data })
+    <MinimalTestPDF data={data} />
   );
   return Buffer.from(buffer);
 }
